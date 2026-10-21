@@ -1,0 +1,12 @@
+.env
+.pytest_cache/
+__pycache__/
+*.py[cod]
+.coverage
+htmlcov/
+.venv/
+.cairn/
+demo/*.png
+demo/*.json
+core/*.state.json
+scripts/artifacts/
