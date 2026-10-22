@@ -70,9 +70,11 @@ class LiveRuntimeError(RuntimeError):
     """Raised when a live Celesto prerequisite is missing or unsafe."""
 
 
-def load_env(path: Path = ROOT / ".env") -> None:
+def load_env(path: Path | None = None) -> None:
     """Load simple KEY=value entries without printing their values."""
 
+    if path is None:
+        path = Path(os.getenv("CAIRN_ENV_FILE") or ROOT / ".env")
     if not path.is_file():
         return
     for raw_line in path.read_text(encoding="utf-8").splitlines():
@@ -119,7 +121,7 @@ class LiveGuest:
         api_key = os.getenv("CELESTO_API_KEY", "")
         if not api_key or api_key == "replace-me":
             raise LiveRuntimeError(
-                "CELESTO_API_KEY is missing; create /home/omni/Projects/Cairn/.env with a real key"
+                "CELESTO_API_KEY is missing; provide a local env file via CAIRN_ENV_FILE or .env"
             )
         try:
             from celesto import Computer

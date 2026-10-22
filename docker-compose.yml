@@ -42,7 +42,7 @@ services:
     volumes:
       - ./.cairn:/var/lib/cairn
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/ready"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health"]
       interval: 5s
       timeout: 5s
       retries: 20

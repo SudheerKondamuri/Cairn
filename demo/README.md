@@ -7,9 +7,15 @@ cleanup. Record it after Gate 0 and the one-case live smoke run pass.
 
 The recommended shot list and narration are in `demo/walkthrough-script.md`.
 
-For a repeatable recording, run `demo/run-demo.sh` from a terminal while
-capturing the screen. It prints only the investigation result and cleanup state;
-never show `.env` or the API key.
+For a repeatable recording, keep credentials in an uncommitted file outside the
+repository and run this from a terminal while capturing the screen:
+
+```bash
+CAIRN_ENV_FILE=/var/tmp/cairn.env demo/run-demo.sh
+```
+
+The script prints only the investigation result and cleanup state; never show
+the environment file or an API key.
 
 The idea-bank concept “Suspicious Package Detonator” is not claimed as part of
 this submission: Cairn has a bounded offline dependency installer and package

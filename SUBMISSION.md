@@ -49,13 +49,13 @@ already complete; it is not an item still waiting to be run.
 | Detailed JSON and Markdown reports | **PASS** | Current dynamic reports plus all live fixture reports |
 | API intake contract | **PASS in tests** | `tests/test_api.py`; actual Docker/Postgres run still needs a Docker-enabled host |
 | API authentication/readiness/rate limiting | **PASS in tests** | Configure `CAIRN_API_KEY` and `CAIRN_REQUIRE_API_AUTH=true` before public exposure |
-| Automated CI checks | **Prepared** | `.github/workflows/ci.yml`; not executed locally because GitHub Actions is remote |
+| Automated CI checks | **Workflow committed** | `.github/workflows/ci.yml`; confirm the post-push GitHub Actions result before submitting |
 | Worker archive claim/extract/complete/delete mechanics | **PASS in smoke test** | Worker mechanics tested without LLM |
 | Reproducible worker deployment | **Prepared, Docker build unverified here** | `Dockerfile.worker`; start with `docker compose --profile worker up --build -d` on a Docker-enabled host |
 | Dependency policy and package-harness contract | **PASS in tests** | `tests/test_dynamic_mvp.py`; no real dependency-heavy repo was needed |
 | Suspicious Package Detonator idea | **PARTIAL / not shipped** | Dependency install exists, but install telemetry, filesystem/process/network snapshots, and package risk scoring are not implemented |
 | Optional five-job concurrency stretch | **Attempted and documented** | `reports/concurrency.json`; 1/5 completed, four free-trial HTTP 429 responses |
-| Public repository | **PENDING manual action** | Local Git repository initialized; no commit or push performed |
+| Public repository | **PUSHED — verify visibility** | `origin/main` contains the current commit; confirm the repository is public and paste its URL into the submission form |
 | Demo video, three minutes or less | **PENDING manual action** | `demo/walkthrough-script.md` and executable `demo/run-demo.sh` are ready; `demo/walkthrough.mp4` is still missing |
 
 ### The 20-case test in detail
@@ -76,9 +76,10 @@ itself.
 
 ## Reproduce the strongest demo
 
-Keep credentials in an uncommitted `.env` and run:
+Keep credentials in an uncommitted env file outside the repository and run:
 
 ```bash
+export CAIRN_ENV_FILE=/var/tmp/cairn.env
 python3 scripts/investigate.py \
   --source real-test-subject \
   --report-file real-test-subject/security-report.txt \
@@ -106,14 +107,15 @@ python3 -m compileall -q api core fixtures guest scripts tests real-test-subject
 python3 scripts/validate_reports.py --live
 ```
 
-The expected current results are 39 tests passing, successful compilation, and
+The expected current results are 45 tests passing, successful compilation, and
 `VALID: Cairn submission reports ...`.
 
 ## Final manual submission steps
 
 1. Record `demo/walkthrough.mp4` (three minutes or less) using the shot list.
-2. Initialize/publish the public repository after checking that `.env`, keys,
-   uploaded bundles, and private source are excluded.
-3. Submit the repository URL, video URL/file, and this evidence packet.
+2. Confirm the pushed repository is public and that `.env`, keys, uploaded
+   bundles, and private source are excluded.
+3. Confirm GitHub Actions passes, then submit the repository URL, video URL/file,
+   and this evidence packet.
 
 Do not show `.env`, API keys, or private source in the recording.

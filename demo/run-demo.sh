@@ -3,6 +3,18 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 run_id="inv-demo-$(date -u +%Y%m%d-%H%M%S)"
+env_file="${CAIRN_ENV_FILE:-.env}"
+
+if [[ ! -f "$env_file" ]]; then
+  printf 'ERROR: live credentials file not found: %s\n' "$env_file" >&2
+  printf 'Set CAIRN_ENV_FILE to an uncommitted local env file.\n' >&2
+  exit 2
+fi
+
+set -a
+. "$env_file"
+set +a
+export CAIRN_ENV_FILE="$env_file"
 
 echo "== Cairn live dynamic investigation: ${run_id} =="
 python3 scripts/investigate.py \
@@ -35,7 +47,4 @@ PY
 
 echo
 echo "== Remaining Celesto Cloud guests (should be empty) =="
-set -a
-. ./.env
-set +a
 celesto computer list --cloud --json

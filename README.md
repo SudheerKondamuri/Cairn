@@ -7,8 +7,8 @@ checked; Cairn applies that idea to AppSec triage.
 > **Live-status note:** this checkout contains measured Celesto Cloud evidence
 > for Gate 0, containment, step-7 recovery, and the required 20-run evaluation.
 > The recorded artifacts are retained under `reports/` and `reports/live/`.
-> A fresh checkout still requires real provider keys in an uncommitted `.env`
-> before rerunning any live command; no synthetic timings, costs, or
+> A fresh checkout still requires real provider keys in a local env file outside
+> the checkout before rerunning any live command; no synthetic timings, costs, or
 > containment results are presented as live evidence.
 
 ## Problem statement
@@ -436,20 +436,21 @@ volume before starting again:
 ```bash
 docker compose down -v
 docker compose up --build -d
+curl http://localhost:8080/health
 curl http://localhost:8080/ready
 curl http://localhost:8080/api/runs
 ```
 
 ### Live Celesto Cloud run
 
-Install the SDK and create an uncommitted `.env`:
+Install the SDK and create an uncommitted local env file outside the repository:
 
 ```bash
 python3 -m pip install celesto
-cp .env.example .env
+cp .env.example /var/tmp/cairn.env
 ```
 
-Set these local-only values in `.env`:
+Set these local-only values in `/var/tmp/cairn.env`:
 
 ```text
 CELESTO_PROVIDER=cloud
@@ -466,10 +467,12 @@ DATABASE_URL=postgresql://ledger:<same-password-as-POSTGRES_PASSWORD>@ledger:543
 API_PORT=8080
 ```
 
-Never commit `.env`, provider keys, or real application credentials. Then run
-the gates in order:
+Never commit the env file, provider keys, or real application credentials. Pass
+the file explicitly to live commands; the repository root should contain no
+`.env` file in the submission checkout. Then run the gates in order:
 
 ```bash
+export CAIRN_ENV_FILE=/var/tmp/cairn.env
 python3 scripts/gate0.py
 python3 scripts/run_one.py a-v-stale
 python3 scripts/run_containment.py
