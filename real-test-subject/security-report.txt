@@ -1,0 +1,4 @@
+The GET /lookup endpoint appears vulnerable to OS command injection through the
+q query parameter. An attacker-controlled q value may be concatenated into a
+shell command. Please verify whether the claim is reproducible and distinguish
+a real reproduction from a failed test setup.
