@@ -17,6 +17,8 @@ conditions. It is not a universal safety claim.
 
 | Evidence | Result | Artifact |
 | --- | --- | --- |
+| Northstar self-owned demo application | `verified` with independent recheck | `reports/investigations/inv-demo-20261024-055325.json` and `.md` |
+| Northstar patched comparison | `not_reproduced`; service reachable and marker-free | `reports/investigations/inv-demo-northstar-patched.json` and `.md` |
 | Non-fixture vulnerable dynamic app | `verified` | `reports/investigations/inv-real-dynamic-vercel-free-20261024.json` |
 | Non-fixture patched dynamic app | `not_reproduced` | `reports/investigations/inv-real-dynamic-vercel-minimax-patched-final-20261024.json` |
 | 20-case Celesto evaluation | 18/20 infrastructure success; TP=9, FP=0, FN=1, TN=10 | `reports/reliability.json`, `reports/postmortem.md` |
@@ -58,6 +60,20 @@ already complete; it is not an item still waiting to be run.
 | Public repository | **PUSHED — verify visibility** | `origin/main` contains the current commit; confirm the repository is public and paste its URL into the submission form |
 | Demo video, three minutes or less | **PENDING manual action** | `demo/walkthrough-script.md` and executable `demo/run-demo.sh` are ready; `demo/walkthrough.mp4` is still missing |
 
+## GitHub submission hygiene
+
+The public repository should contain the implementation, the exact grader-read
+artifacts, the self-owned demo subject, and enough evidence for a reviewer to
+understand the result. Keep the paths listed in the challenge contract,
+`api/`, `core/`, `guest/`, the required evaluation `fixtures/`, the focused
+`tests/`, the live/demo scripts, and the retained reports/evidence.
+
+Never commit `.env` or any provider/LLM/API key. Also exclude `.cairn/`,
+`__pycache__/`, `*.pyc`, local uploaded archives, temporary recordings, and
+private source. If the video is uploaded separately, link it from this file or
+the README instead of committing a large binary. Keep only final, real demo
+reports rather than failed retry output created while recording.
+
 ### The 20-case test in detail
 
 `cases/evaluation_matrix.json` contains 20 rows:
@@ -81,12 +97,12 @@ Keep credentials in an uncommitted env file outside the repository and run:
 ```bash
 export CAIRN_ENV_FILE=/var/tmp/cairn.env
 python3 scripts/investigate.py \
-  --source real-test-subject \
-  --report-file real-test-subject/security-report.txt \
+  --source demo-subject \
+  --report-file demo-subject/security-report.txt \
   --runtime python \
   --start-argv python3 app.py \
   --port 5002 \
-  --investigation-id inv-demo-vulnerable
+  --investigation-id inv-demo-northstar
 ```
 
 Then inspect:
@@ -96,18 +112,18 @@ reports/investigations/inv-demo-vulnerable.json
 reports/investigations/inv-demo-vulnerable.md
 ```
 
-The patched counterpart is in `real-test-subject-patched/`. The demo shot list
-and narration are in `demo/walkthrough-script.md`.
+The patched counterpart is in `demo-subject-patched/`. The demo shot list and
+narration are in `demo/walkthrough-script.md`.
 
 ## Checks run for this checkout
 
 ```bash
 python3 -m pytest -q
-python3 -m compileall -q api core fixtures guest scripts tests real-test-subject real-test-subject-patched
+python3 -m compileall -q api core demo-subject demo-subject-patched fixtures guest scripts tests
 python3 scripts/validate_reports.py --live
 ```
 
-The expected current results are 45 tests passing, successful compilation, and
+The expected current results are 47 tests passing, successful compilation, and
 `VALID: Cairn submission reports ...`.
 
 ## Final manual submission steps

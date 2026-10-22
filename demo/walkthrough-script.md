@@ -10,8 +10,10 @@ Show the repository README architecture diagram. Say:
 
 ## 0:20–0:45 — Input
 
-Show `real-test-subject/app.py` and `security-report.txt`. Point out the
-non-fixture route `/lookup` and parameter `q`. Do not show `.env` or any key.
+Show `demo-subject/app.py` and `demo-subject/security-report.txt`. Point out
+the self-owned Northstar Operations Diagnostics API, its health/job endpoints,
+and the reported diagnostics route `/api/v1/diagnostics/resolve` with parameter
+`host`. Do not show the env file or any key.
 
 ## 0:45–1:25 — Live dynamic investigation
 
@@ -19,12 +21,12 @@ Run or show the recorded command:
 
 ```bash
 python3 scripts/investigate.py \
-  --source real-test-subject \
-  --report-file real-test-subject/security-report.txt \
+  --source demo-subject \
+  --report-file demo-subject/security-report.txt \
   --runtime python \
   --start-argv python3 app.py \
   --port 5002 \
-  --investigation-id inv-real-dynamic-vercel-free-20261024
+  --investigation-id inv-demo-northstar
 ```
 
 Show the model-driven sequence in `logs/commands.jsonl` or the terminal:
@@ -33,12 +35,12 @@ Show the model-driven sequence in `logs/commands.jsonl` or the terminal:
 list_source -> inspect_source -> send_request -> submit_finding
 ```
 
-Mention that the model discovered `/lookup` and `q`; they were not fixture
-allowlist values.
+Mention that the model discovered the Northstar route and `host`; they were not
+fixture allowlist values.
 
 ## 1:25–1:55 — Proof and independent recheck
 
-Show the JSON report and highlight:
+Show the JSON report generated under `reports/investigations/` and highlight:
 
 ```text
 verdict: verified
@@ -72,6 +74,7 @@ Show the Markdown report. State:
 > The result is a bounded reproduction under supplied conditions, with source
 > hash, request evidence, independent recheck, remediation, and cleanup state.
 > Existing reliability, containment, and recovery artifacts are included in
-> `reports/`.
+> `reports/`. The retained patched counterpart uses the same business endpoint
+> and produces `not_reproduced`.
 
 Never show credentials, `.env`, raw API keys, or private source.

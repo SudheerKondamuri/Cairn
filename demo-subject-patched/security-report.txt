@@ -1,0 +1,14 @@
+Security verification report
+============================
+
+Title: OS command injection in the Northstar Operations Diagnostics API
+
+Application: Northstar Operations Diagnostics API
+Version under review: 1.4.3
+Affected component: operator diagnostics
+
+The same report is retained for the patched comparison case. Verify whether
+GET /api/v1/diagnostics/resolve?host=<value> still permits command injection.
+The test must distinguish a patched implementation from an unavailable service
+or an incorrectly constructed request, and should record the evidence used for
+the conclusion.

@@ -1,0 +1,37 @@
+Security verification report
+============================
+
+Title: OS command injection in the Northstar Operations Diagnostics API
+
+Application: Northstar Operations Diagnostics API
+Version: 1.4.2
+Affected component: operator diagnostics
+Severity: High
+
+Summary
+-------
+The operator-facing diagnostics endpoint appears to include an attacker-
+controlled host value in an operating-system command. A user who can reach the
+diagnostics API may be able to make the service process execute additional
+commands instead of treating the value as one hostname.
+
+Affected request
+----------------
+GET /api/v1/diagnostics/resolve?host=<value>
+
+Expected behavior
+-----------------
+The service should treat host as one diagnostic target and return a structured
+result. Shell metacharacters should not change the command being executed.
+
+Verification request
+--------------------
+Please inspect the supplied source and reproduce or reject this claim inside an
+isolated environment. Discover the actual route and parameter from the source;
+do not assume the report is correct. Distinguish a real reproduction from a
+wrong route, wrong parameter, patched implementation, or failed test setup.
+
+Suggested remediation
+---------------------
+Use an argument-vector subprocess call with shell execution disabled, validate
+the target against an allowlist, and retain a short execution timeout.

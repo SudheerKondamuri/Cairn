@@ -65,6 +65,20 @@ tool, arbitrary URL, host path, database connection, VM lifecycle operation, or
 credential. The control plane constructs the independent recheck after the
 model proposes `verified`; the model does not write the final verdict.
 
+## Live demo subject
+
+The video uses `demo-subject/`, a self-owned Northstar Operations Diagnostics
+API. It is intentionally small and dependency-free, but has realistic internal
+service context: health, recent-job, and operator diagnostics endpoints. The
+accompanying report is written like an AppSec ticket and asks Cairn to verify an
+OS command-injection claim against `GET /api/v1/diagnostics/resolve?host=...`.
+
+`demo-subject-patched/` keeps the same routes and report context while using an
+argv-based subprocess call with `shell=False`. The two live reports show the
+intended contrast: `verified` for the vulnerable subject and
+`not_reproduced` for the reachable patched subject. Both applications contain
+synthetic data only and must remain inside the disposable sandbox.
+
 ## How I used Celesto
 
 ### Network policy
@@ -494,14 +508,16 @@ fixtures/            four intentional standard-library target applications
 guest/               fixed helpers copied into the Celesto guest
 scripts/              dynamic CLI/worker, Gate 0, live runs, evals, containment, recovery
 cases/               the 20-case evaluation matrix
+demo-subject/        self-owned Northstar diagnostics API used in the video
+demo-subject-patched/ patched counterpart for the negative comparison
 reports/              challenge-format evidence and per-investigation reports
 logs/                append-only Celesto command audit log
 ```
 
 ## Disclosure and responsible use
 
-The vulnerable fixtures are intentionally insecure and must stay disposable
-and local to the sandbox. Cairn is not a permission to test applications that
-are not owned by the operator. The implementation was developed with an AI
-coding assistant; all generated code is reviewed through the tests and the
-explicit Celesto boundary.
+The vulnerable fixtures and the Northstar demo subject are intentionally
+insecure and must stay disposable and local to the sandbox. Cairn is not a
+permission to test applications that are not owned by the operator. The
+implementation was developed with an AI coding assistant; all generated code
+is reviewed through the tests and the explicit Celesto boundary.

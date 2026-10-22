@@ -18,8 +18,8 @@ export CAIRN_ENV_FILE="$env_file"
 
 echo "== Cairn live dynamic investigation: ${run_id} =="
 python3 scripts/investigate.py \
-  --source real-test-subject \
-  --report-file real-test-subject/security-report.txt \
+  --source demo-subject \
+  --report-file demo-subject/security-report.txt \
   --runtime python \
   --start-argv python3 app.py \
   --port 5002 \
