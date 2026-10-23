@@ -1,0 +1,2 @@
+{"error": "deliberate first request dispatch failure after fixture termination", "event": "step_failed", "run_id": "demo-step7", "step": 7, "ts": "2026-10-22T17:17:11.704415+00:00"}
+{"event": "policy_applied", "policy": "resume", "run_id": "demo-step7", "step": 7, "ts": "2026-10-22T17:17:54.437758+00:00"}

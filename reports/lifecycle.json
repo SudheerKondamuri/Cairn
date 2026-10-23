@@ -1,0 +1,28 @@
+{
+  "cleanup_on_success": true,
+  "cleanup_on_failure": true,
+  "cleanup_on_interrupt": true,
+  "sandbox_names": [
+    "sbx-cairnbootstrap1",
+    "sbx-cairn2008753c5e36",
+    "sbx-cairnb3fbdd7d67d4",
+    "sbx-cairn99c5b93b81e0",
+    "sbx-cairnf25431272461",
+    "sbx-cairn363c26ef5f0a",
+    "sbx-cairn2dbd7375d6af",
+    "sbx-cairndcb1f8f9081d",
+    "sbx-cairn76444d2949aa",
+    "sbx-cairn60820be403c3",
+    "sbx-cairn121c4c040cdb",
+    "sbx-cairnee4eae2b13e6",
+    "sbx-cairn5e08d14b408f",
+    "sbx-cairn77d195dca5eb",
+    "sbx-cairnf084f0fbbaac",
+    "sbx-cairnbd41806e433e",
+    "sbx-cairn1998be07c696",
+    "sbx-cairn3509754baccc",
+    "sbx-cairn1edb6ddef900",
+    "sbx-cairne552309e7321",
+    "sbx-cairn7e7019ff7e9d"
+  ]
+}
