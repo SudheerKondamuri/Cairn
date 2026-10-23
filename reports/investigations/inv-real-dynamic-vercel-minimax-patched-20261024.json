@@ -1,0 +1,102 @@
+{
+  "claim": {
+    "report": "The GET /lookup endpoint appears vulnerable to OS command injection through the\nq query parameter. An attacker-controlled q value may be concatenated into a\nshell command. Please verify whether the claim is reproducible and distinguish\na real reproduction from a failed test setup.\n",
+    "runtime": "python",
+    "subject_type": "http_app"
+  },
+  "dependencies": {
+    "events": [
+      {
+        "installed": false,
+        "manifest": null,
+        "reason": "no supported dependency manifest found",
+        "supported": true
+      }
+    ],
+    "install_scripts_allowed": false,
+    "mode": "offline",
+    "network_during_install_allowed": false
+  },
+  "error": null,
+  "evidence": {
+    "agent_rationale": null,
+    "attempts": [
+      {
+        "body": "{\"output\": \"lookup test; touch /tmp/cairn-markers/probe; #\\n\", \"error\": \"\"}",
+        "elapsed_ms": 12.337,
+        "marker_detected": false,
+        "outcome": "complete",
+        "param_name": "q",
+        "param_value": "test; touch /tmp/cairn-markers/probe; #",
+        "path": "/lookup",
+        "status": 200
+      },
+      {
+        "body": "{\"output\": \"lookup $(touch /tmp/cairn-markers/probe)\\n\", \"error\": \"\"}",
+        "elapsed_ms": 5.584,
+        "marker_detected": false,
+        "outcome": "complete",
+        "param_name": "q",
+        "param_value": "$(touch /tmp/cairn-markers/probe)",
+        "path": "/lookup",
+        "status": 200
+      },
+      {
+        "body": "{\"output\": \"lookup localhost | touch /tmp/cairn-markers/probe\\n\", \"error\": \"\"}",
+        "elapsed_ms": 5.216,
+        "marker_detected": false,
+        "outcome": "complete",
+        "param_name": "q",
+        "param_value": "localhost | touch /tmp/cairn-markers/probe",
+        "path": "/lookup",
+        "status": 200
+      },
+      {
+        "body": "{\"output\": \"lookup `touch /tmp/cairn-markers/probe`\\n\", \"error\": \"\"}",
+        "elapsed_ms": 4.452,
+        "marker_detected": false,
+        "outcome": "complete",
+        "param_name": "q",
+        "param_value": "`touch /tmp/cairn-markers/probe`",
+        "path": "/lookup",
+        "status": 200
+      }
+    ],
+    "independent_recheck": null,
+    "request": {},
+    "source_hash": "1569fa308e11db3ee5a7145d0ede08f37a5d1ed7d4fc7cf4bf0393f73db6c499"
+  },
+  "explanation": {
+    "next_action": "Resolve the recorded failure and retry in a fresh sandbox.",
+    "remediation": [],
+    "why": [
+      "The application, dependency setup, request, or evidence check did not complete."
+    ]
+  },
+  "generated_at": "2026-10-23T20:43:57.014893+00:00",
+  "investigation_id": "inv-real-dynamic-vercel-minimax-patched-20261024",
+  "lifecycle": {
+    "application_started": true,
+    "sandbox_deleted": true,
+    "sandbox_name": "sbx-cairn88d76ecc7c42",
+    "source_uploaded": true,
+    "subject_manifest": {
+      "file_count": 3,
+      "files": [
+        "__pycache__/app.cpython-311.pyc",
+        "app.py",
+        "security-report.txt"
+      ],
+      "source_hash": "ec61f2705d330b1bdc7ae0315190970ad6e7a4712ce64c00558a4a3d1cb1acd0"
+    },
+    "wall_clock_s": 118.367
+  },
+  "schema_version": 1,
+  "subject": {
+    "port": 5002,
+    "source_hash": "1569fa308e11db3ee5a7145d0ede08f37a5d1ed7d4fc7cf4bf0393f73db6c499",
+    "working_directory": "."
+  },
+  "summary": "The investigation did not produce enough reliable evidence for a vulnerability verdict.",
+  "verdict": "inconclusive"
+}

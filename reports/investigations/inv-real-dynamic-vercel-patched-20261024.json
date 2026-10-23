@@ -1,0 +1,66 @@
+{
+  "claim": {
+    "report": "The GET /lookup endpoint appears vulnerable to OS command injection through the\nq query parameter. An attacker-controlled q value may be concatenated into a\nshell command. Please verify whether the claim is reproducible and distinguish\na real reproduction from a failed test setup.\n",
+    "runtime": "python",
+    "subject_type": "http_app"
+  },
+  "dependencies": {
+    "events": [
+      {
+        "installed": false,
+        "manifest": null,
+        "reason": "no supported dependency manifest found",
+        "supported": true
+      },
+      {
+        "installed": false,
+        "manifest": null,
+        "reason": "no supported dependency manifest found",
+        "supported": true
+      }
+    ],
+    "install_scripts_allowed": false,
+    "mode": "offline",
+    "network_during_install_allowed": false
+  },
+  "error": "AgentProtocolError: LLM request failed: HTTP 429",
+  "evidence": {
+    "agent_rationale": null,
+    "attempts": [],
+    "independent_recheck": null,
+    "request": {},
+    "source_hash": null
+  },
+  "explanation": {
+    "next_action": "Resolve the recorded failure and retry in a fresh sandbox.",
+    "remediation": [],
+    "why": [
+      "AgentProtocolError: LLM request failed: HTTP 429"
+    ]
+  },
+  "generated_at": "2026-10-23T19:18:35.693660+00:00",
+  "investigation_id": "inv-real-dynamic-vercel-patched-20261024",
+  "lifecycle": {
+    "application_started": true,
+    "sandbox_deleted": true,
+    "sandbox_name": "sbx-cairna0109dcb3d87",
+    "source_uploaded": true,
+    "subject_manifest": {
+      "file_count": 2,
+      "files": [
+        "app.py",
+        "security-report.txt"
+      ],
+      "source_hash": "c0956d56bf8f81833e9a12a502d7e508807508dcbfe986747d3cd8c294917195"
+    },
+    "wall_clock_s": 93.458
+  },
+  "schema_version": 1,
+  "subject": {
+    "port": 5002,
+    "source_hash": null,
+    "working_directory": "."
+  },
+  "summary": "The investigation did not produce enough reliable evidence for a vulnerability verdict.",
+  "verdict": "inconclusive"
+}

@@ -1,0 +1,88 @@
+{
+  "claim": {
+    "report": "The GET /lookup endpoint appears vulnerable to OS command injection through the\nq query parameter. An attacker-controlled q value may be concatenated into a\nshell command. Please verify whether the claim is reproducible and distinguish\na real reproduction from a failed test setup.\n",
+    "runtime": "python",
+    "subject_type": "http_app"
+  },
+  "dependencies": {
+    "events": [
+      {
+        "installed": false,
+        "manifest": null,
+        "reason": "no supported dependency manifest found",
+        "supported": true
+      }
+    ],
+    "install_scripts_allowed": false,
+    "mode": "offline",
+    "network_during_install_allowed": false
+  },
+  "error": null,
+  "evidence": {
+    "agent_rationale": "Not reproducible: the endpoint is patched against OS command injection. Source evidence (app.py handle_lookup): the q value is read as name = query.get(\"q\", [\"localhost\"])[0] and passed as a single element of an argument list to subprocess.run([\"printf\", \"lookup %s\\n\", name], shell=False, capture_output=True, text=True, timeout=5, check=False). There is no concatenation into a shell command string and shell is False, so no shell parses metacharacters. Runtime evidence: the service was reachable and the parameter was parsed and forwarded, so this is a genuine negative result rather than a broken test setup. Test 1: GET /lookup with q set to \"; touch /tmp/cairn-markers/probe; #\" returned HTTP 200 with output \"lookup ; touch /tmp/cairn-markers/probe; #\" and error empty; marker_detected was false. The payload was echoed verbatim as a literal printf argument and the injected touch never executed. Test 2: GET /lookup with q set to \"$(touch /tmp/cairn-markers/probe2)\" returned HTTP 200 with output \"lookup $(touch /tmp/cairn-markers/probe2)\" and error empty; marker_detected was false, showing command substitution is also treated as plain text. Both shell metacharacter forms were neutralized and no marker file was created, consistent with the reviewed source. The claim that q allows OS command injection does not hold against this build.",
+    "attempts": [
+      {
+        "body": "{\"output\": \"lookup ; touch /tmp/cairn-markers/probe; #\\n\", \"error\": \"\"}",
+        "elapsed_ms": 12.457,
+        "marker_detected": false,
+        "outcome": "complete",
+        "param_name": "q",
+        "param_value": "; touch /tmp/cairn-markers/probe; #",
+        "path": "/lookup",
+        "status": 200
+      },
+      {
+        "body": "{\"output\": \"lookup $(touch /tmp/cairn-markers/probe2)\\n\", \"error\": \"\"}",
+        "elapsed_ms": 5.648,
+        "marker_detected": false,
+        "outcome": "complete",
+        "param_name": "q",
+        "param_value": "$(touch /tmp/cairn-markers/probe2)",
+        "path": "/lookup",
+        "status": 200
+      }
+    ],
+    "independent_recheck": null,
+    "request": {
+      "param_name": "q",
+      "param_value": "; touch /tmp/cairn-markers/probe; #",
+      "path": "/lookup"
+    },
+    "source_hash": "1569fa308e11db3ee5a7145d0ede08f37a5d1ed7d4fc7cf4bf0393f73db6c499"
+  },
+  "explanation": {
+    "next_action": "Confirm the application version and expand the harness if the report covers another path.",
+    "remediation": [
+      "Review the tested path, parameter, source revision, and dependency versions."
+    ],
+    "why": [
+      "The investigation completed without marker evidence (last HTTP status: 200).",
+      "This result does not prove that every code path or configuration is safe."
+    ]
+  },
+  "generated_at": "2026-10-23T20:57:06.828864+00:00",
+  "investigation_id": "inv-real-dynamic-vercel-minimax-patched-final-20261024",
+  "lifecycle": {
+    "application_started": true,
+    "sandbox_deleted": true,
+    "sandbox_name": "sbx-cairnca8024327770",
+    "source_uploaded": true,
+    "subject_manifest": {
+      "file_count": 2,
+      "files": [
+        "app.py",
+        "security-report.txt"
+      ],
+      "source_hash": "c0956d56bf8f81833e9a12a502d7e508807508dcbfe986747d3cd8c294917195"
+    },
+    "wall_clock_s": 95.545
+  },
+  "schema_version": 1,
+  "subject": {
+    "port": 5002,
+    "source_hash": "1569fa308e11db3ee5a7145d0ede08f37a5d1ed7d4fc7cf4bf0393f73db6c499",
+    "working_directory": "."
+  },
+  "summary": "The supplied security claim was not reproduced under the supplied runtime and test conditions.",
+  "verdict": "not_reproduced"
+}
