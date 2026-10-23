@@ -1,0 +1,14 @@
+{
+  "capabilities": [
+    {
+      "id": "network_policy",
+      "why": "The fixture and proof oracle need only guest-local loopback, so the sandbox is created with outbound internet disabled. This blocks a prompt-injected report from calling an attacker-controlled host, and the dedicated containment run will record an external probe failure rather than merely trusting a prompt.",
+      "evidence_path": "reports/evidence/network_policy_probe.log"
+    },
+    {
+      "id": "persistence",
+      "why": "Step 7 is recovered by stopping and starting the same Celesto computer, then verifying that the source hash and workspace remain available before retrying. Persistence avoids re-transferring a known-good fixture while still deleting the guest after the run.",
+      "evidence_path": "reports/evidence/persistence_probe.log"
+    }
+  ]
+}

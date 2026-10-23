@@ -1,0 +1,56 @@
+{
+  "jobs": [
+    {
+      "sandbox_name": "sbx-concur14795bb0174f1",
+      "started_at": "2026-10-22T17:52:47.250362+00:00"
+    },
+    {
+      "sandbox_name": "sbx-concur216c3f60ba770",
+      "started_at": "2026-10-22T17:52:47.250547+00:00"
+    },
+    {
+      "sandbox_name": "sbx-concur33042ca309be8",
+      "started_at": "2026-10-22T17:52:47.250713+00:00"
+    },
+    {
+      "sandbox_name": "sbx-concur47e822852c2cc",
+      "started_at": "2026-10-22T17:52:47.251462+00:00"
+    },
+    {
+      "sandbox_name": "sbx-concur50d543f935382",
+      "started_at": "2026-10-22T17:52:47.251702+00:00"
+    }
+  ],
+  "breakage_notes": "Attempted five overlapping uniquely named guests; 1/5 completed the version probe. Review per-job errors for rate limits, credit limits, or transport failures.",
+  "observations": [
+    {
+      "sandbox_name": "sbx-concur14795bb0174f1",
+      "started_at": "2026-10-22T17:52:47.250362+00:00",
+      "ok": false,
+      "error": "CloudAPIError: Cloud API returned HTTP 429. The free trial allows one sandbox at a time, including stopped sandboxes. Reuse your existing sandbox, delete it in the cloud dashboard, or add prepaid credit before creating another. Request ID: ed0c748634ce47eca7ea6795dc0150e6."
+    },
+    {
+      "sandbox_name": "sbx-concur216c3f60ba770",
+      "started_at": "2026-10-22T17:52:47.250547+00:00",
+      "ok": true
+    },
+    {
+      "sandbox_name": "sbx-concur33042ca309be8",
+      "started_at": "2026-10-22T17:52:47.250713+00:00",
+      "ok": false,
+      "error": "CloudAPIError: Cloud API returned HTTP 429. The free trial allows one sandbox at a time, including stopped sandboxes. Reuse your existing sandbox, delete it in the cloud dashboard, or add prepaid credit before creating another. Request ID: 05caae3fc7af7d58e45fc841fa1f87ac."
+    },
+    {
+      "sandbox_name": "sbx-concur47e822852c2cc",
+      "started_at": "2026-10-22T17:52:47.251462+00:00",
+      "ok": false,
+      "error": "CloudAPIError: Cloud API returned HTTP 429. The free trial allows one sandbox at a time, including stopped sandboxes. Reuse your existing sandbox, delete it in the cloud dashboard, or add prepaid credit before creating another. Request ID: d995da1d35a78980415efd2a571a55ed."
+    },
+    {
+      "sandbox_name": "sbx-concur50d543f935382",
+      "started_at": "2026-10-22T17:52:47.251702+00:00",
+      "ok": false,
+      "error": "CloudAPIError: Cloud API returned HTTP 429. The free trial allows one sandbox at a time, including stopped sandboxes. Reuse your existing sandbox, delete it in the cloud dashboard, or add prepaid credit before creating another. Request ID: d050cef96c4eac57cf2944f5af93b6ae."
+    }
+  ]
+}
