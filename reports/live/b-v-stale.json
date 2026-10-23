@@ -1,0 +1,13 @@
+{
+  "boot_to_ready_s": 0.0,
+  "case_id": "b-v-stale",
+  "cleaned_up": true,
+  "cost_usd": 1.1e-05,
+  "error": "CloudAPIError: Cloud API returned HTTP 503. The operation may have succeeded; inspect your computers in the cloud dashboard before retrying. Request ID: 120def1960fc20d40bbc8e96952e5374.",
+  "fresh": true,
+  "sandbox_name": "sbx-cairnbd41806e433e",
+  "success": false,
+  "truth": "vulnerable",
+  "variant": "stale",
+  "wall_clock_s": 2.706
+}
