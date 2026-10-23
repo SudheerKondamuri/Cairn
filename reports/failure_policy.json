@@ -1,0 +1,7 @@
+{
+  "failed_step": 7,
+  "total_steps": 10,
+  "policy": "resume",
+  "rationale": "The failed operation is the first request dispatch after the fixture process is deliberately terminated inside the Celesto guest. The source tree and guest workspace remain valid, while the marker directory is deliberately disposable and is cleared before a fresh attempt. Stop/start persistence preserves the known-good fixture and avoids expensive re-transfer and re-probing. Recovery restarts the fixture in the resumed guest, records the policy before the resumed operation, and the finalizer deletes the guest on both success and failure.",
+  "trace_path": "reports/failure_trace.jsonl"
+}
