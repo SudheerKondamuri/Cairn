@@ -10,3 +10,7 @@ The recommended shot list and narration are in `demo/walkthrough-script.md`.
 For a repeatable recording, run `demo/run-demo.sh` from a terminal while
 capturing the screen. It prints only the investigation result and cleanup state;
 never show `.env` or the API key.
+
+The idea-bank concept “Suspicious Package Detonator” is not claimed as part of
+this submission: Cairn has a bounded offline dependency installer and package
+harness, but not the separate install-telemetry/snapshot/risk-scoring product.

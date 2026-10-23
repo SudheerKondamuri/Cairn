@@ -45,10 +45,15 @@ already complete; it is not an item still waiting to be run.
 | Step-7 persistence/recovery policy | **PASS** | `reports/failure_policy.json`, `reports/failure_trace.jsonl`, `reports/evidence/persistence_probe.log` |
 | Cleanup on success/failure/interruption | **PASS** | `reports/lifecycle.json`; current Celesto Cloud list is empty |
 | Dynamic user-supplied source/report flow | **PASS** | Vulnerable and patched non-fixture reports in `reports/investigations/` |
+| GitHub repository source acquisition | **PASS in CLI** | `scripts/investigate.py --github-url ...`; archives are validated before guest upload |
 | Detailed JSON and Markdown reports | **PASS** | Current dynamic reports plus all live fixture reports |
 | API intake contract | **PASS in tests** | `tests/test_api.py`; actual Docker/Postgres run still needs a Docker-enabled host |
-| Worker archive claim/extract/complete/delete mechanics | **PASS in smoke test** | Worker mechanics tested without LLM; actual Compose/Postgres deployment remains host-dependent |
+| API authentication/readiness/rate limiting | **PASS in tests** | Configure `CAIRN_API_KEY` and `CAIRN_REQUIRE_API_AUTH=true` before public exposure |
+| Automated CI checks | **Prepared** | `.github/workflows/ci.yml`; not executed locally because GitHub Actions is remote |
+| Worker archive claim/extract/complete/delete mechanics | **PASS in smoke test** | Worker mechanics tested without LLM |
+| Reproducible worker deployment | **Prepared, Docker build unverified here** | `Dockerfile.worker`; start with `docker compose --profile worker up --build -d` on a Docker-enabled host |
 | Dependency policy and package-harness contract | **PASS in tests** | `tests/test_dynamic_mvp.py`; no real dependency-heavy repo was needed |
+| Suspicious Package Detonator idea | **PARTIAL / not shipped** | Dependency install exists, but install telemetry, filesystem/process/network snapshots, and package risk scoring are not implemented |
 | Optional five-job concurrency stretch | **Attempted and documented** | `reports/concurrency.json`; 1/5 completed, four free-trial HTTP 429 responses |
 | Public repository | **PENDING manual action** | Local Git repository initialized; no commit or push performed |
 | Demo video, three minutes or less | **PENDING manual action** | `demo/walkthrough-script.md` and executable `demo/run-demo.sh` are ready; `demo/walkthrough.mp4` is still missing |

@@ -27,6 +27,10 @@ services:
       LLM_BASE_URL: ${LLM_BASE_URL:-https://example-llm-host/v1}
       LLM_API_KEY: ${LLM_API_KEY:-replace-me}
       LLM_MODEL: ${LLM_MODEL:-replace-with-a-model-name}
+      CAIRN_API_KEY: ${CAIRN_API_KEY:-}
+      CAIRN_REQUIRE_API_AUTH: ${CAIRN_REQUIRE_API_AUTH:-false}
+      CAIRN_API_RATE_LIMIT: ${CAIRN_API_RATE_LIMIT:-60}
+      CAIRN_API_RATE_WINDOW_S: ${CAIRN_API_RATE_WINDOW_S:-60}
       DATABASE_URL: ${DATABASE_URL:-postgresql://ledger:ledger@ledger:5432/ledger}
       CAIRN_UPLOAD_ROOT: /var/lib/cairn/uploads
       API_PORT: 8080
@@ -43,6 +47,31 @@ services:
       timeout: 5s
       retries: 20
       start_period: 10s
+
+  worker:
+    profiles: ["worker"]
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    environment:
+      CELESTO_PROVIDER: ${CELESTO_PROVIDER:-cloud}
+      CELESTO_API_KEY: ${CELESTO_API_KEY:-replace-me}
+      CELESTO_BACKEND: ${CELESTO_BACKEND:-firecracker}
+      CELESTO_BASE_URL: ${CELESTO_BASE_URL:-https://api.celesto.ai}
+      CELESTO_TEMPLATE_ID: ${CELESTO_TEMPLATE_ID:-coding-agent}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://example-llm-host/v1}
+      LLM_API_KEY: ${LLM_API_KEY:-replace-me}
+      LLM_MODEL: ${LLM_MODEL:-replace-with-a-model-name}
+      LLM_TIMEOUT_S: ${LLM_TIMEOUT_S:-90}
+      LLM_MAX_TOKENS: ${LLM_MAX_TOKENS:-1024}
+      INVESTIGATION_TIMEOUT_S: ${INVESTIGATION_TIMEOUT_S:-150}
+      DATABASE_URL: ${DATABASE_URL:-postgresql://ledger:ledger@ledger:5432/ledger}
+    depends_on:
+      ledger:
+        condition: service_healthy
+    volumes:
+      - ./.cairn:/var/lib/cairn
+      - ./reports:/app/reports
 
 volumes:
   ledger-data:

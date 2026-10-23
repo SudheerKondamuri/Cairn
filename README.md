@@ -104,10 +104,16 @@ Celesto guests.
 
 ## Control-plane API
 
-The Compose stack contains exactly two services:
+The default Compose stack contains two services:
 
 - `api` on port `8080`
 - `ledger` on PostgreSQL
+
+An optional `worker` profile is included for a reproducible queue deployment.
+Start it with `docker compose --profile worker up --build -d`; it shares the
+ledger and upload/report volumes with the API. The worker image pins the
+installed Celesto SDK version. Docker build verification must be performed on a
+Docker-enabled host.
 
 Celesto guests are created by the live scripts through the SDK, not as a
 Compose service.
@@ -134,6 +140,12 @@ POST /api/investigations (multipart form)
 GET  /api/investigations/<investigation_id>
   -> queued, running, completed, or failed status plus the detailed result
 ```
+
+For a public deployment, set `CAIRN_API_KEY` and keep
+`CAIRN_REQUIRE_API_AUTH=true`. Sensitive `/api/*` routes accept either
+`X-Cairn-API-Key: <key>` or `Authorization: Bearer <key>`. The API also applies
+a bounded per-client in-process rate limit; use a shared gateway/rate limiter
+when running multiple API replicas.
 
 The POST endpoint rejects host execution targets, unknown states, and sandbox
 names that do not match `sbx-` plus at least eight lowercase letters/digits.
@@ -314,6 +326,24 @@ reports/investigations/<investigation_id>.json
 reports/investigations/<investigation_id>.md
 ```
 
+For a public GitHub repository, Cairn can fetch a tagged, branched, or commit
+archive in the trusted control plane before applying the same source validation.
+The guest does not receive the URL and does not need outbound networking:
+
+```bash
+python3 scripts/investigate.py \
+  --github-url https://github.com/OWNER/REPOSITORY \
+  --github-ref main \
+  --report-file ./security-report.txt \
+  --runtime python \
+  --start-argv python3 app.py \
+  --port 5000
+```
+
+GitHub acquisition is CLI-only in this MVP; the multipart API continues to
+accept validated source archives. Use a small repository and an explicit
+runtime argv rather than running repository setup scripts on the host.
+
 If a dynamic investigation exhausts its bounded agent budget after complete,
 marker-free attempts, the trusted controller may finalize `not_reproduced` from
 those observations. Unknown request outcomes, dependency failures, or any
@@ -361,6 +391,12 @@ worker runs outside the Compose network, override the database hostname with
 ```bash
 DATABASE_URL=postgresql://ledger:replace-me@127.0.0.1:5432/ledger \
   python3 scripts/worker.py
+```
+
+For the optional Compose worker instead:
+
+```bash
+docker compose --profile worker up --build -d
 ```
 
 Then retrieve the status and detailed report using the returned
