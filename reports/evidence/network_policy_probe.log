@@ -1,0 +1,5 @@
+{
+  "sandbox_name": "sbx-gate0f1d4999b99c1",
+  "execution_target": "celesto_sandbox",
+  "network_probe": "{\"loopback_ok\": true, \"external_blocked\": true}"
+}
