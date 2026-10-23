@@ -1,0 +1,171 @@
+{
+  "median_boot_to_ready_s": 9.131,
+  "median_wall_clock_s": 68.634,
+  "p90_wall_clock_s": 82.226,
+  "postmortem_path": "reports/postmortem.md",
+  "run_count": 20,
+  "runs": [
+    {
+      "boot_to_ready_s": 0.0,
+      "cost_usd": 1.1e-05,
+      "fresh": true,
+      "sandbox_name": "sbx-cairnbd41806e433e",
+      "success": false,
+      "wall_clock_s": 2.706
+    },
+    {
+      "boot_to_ready_s": 0.0,
+      "cost_usd": 1.7e-05,
+      "fresh": true,
+      "sandbox_name": "sbx-cairn2dbd7375d6af",
+      "success": false,
+      "wall_clock_s": 4.0
+    },
+    {
+      "boot_to_ready_s": 8.038,
+      "cost_usd": 0.000231,
+      "fresh": true,
+      "sandbox_name": "sbx-cairn3509754baccc",
+      "success": true,
+      "wall_clock_s": 55.391
+    },
+    {
+      "boot_to_ready_s": 8.295,
+      "cost_usd": 0.000238,
+      "fresh": true,
+      "sandbox_name": "sbx-cairnf25431272461",
+      "success": true,
+      "wall_clock_s": 57.138
+    },
+    {
+      "boot_to_ready_s": 8.498,
+      "cost_usd": 0.000241,
+      "fresh": true,
+      "sandbox_name": "sbx-cairn1edb6ddef900",
+      "success": true,
+      "wall_clock_s": 57.874
+    },
+    {
+      "boot_to_ready_s": 14.231,
+      "cost_usd": 0.000243,
+      "fresh": true,
+      "sandbox_name": "sbx-cairn76444d2949aa",
+      "success": true,
+      "wall_clock_s": 58.269
+    },
+    {
+      "boot_to_ready_s": 9.42,
+      "cost_usd": 0.000256,
+      "fresh": true,
+      "sandbox_name": "sbx-cairne552309e7321",
+      "success": true,
+      "wall_clock_s": 61.442
+    },
+    {
+      "boot_to_ready_s": 7.941,
+      "cost_usd": 0.000259,
+      "fresh": true,
+      "sandbox_name": "sbx-cairn1998be07c696",
+      "success": true,
+      "wall_clock_s": 62.131
+    },
+    {
+      "boot_to_ready_s": 7.065,
+      "cost_usd": 0.000267,
+      "fresh": true,
+      "sandbox_name": "sbx-cairnb3fbdd7d67d4",
+      "success": true,
+      "wall_clock_s": 64.101
+    },
+    {
+      "boot_to_ready_s": 9.253,
+      "cost_usd": 0.000284,
+      "fresh": true,
+      "sandbox_name": "sbx-cairn363c26ef5f0a",
+      "success": true,
+      "wall_clock_s": 68.093
+    },
+    {
+      "boot_to_ready_s": 9.009,
+      "cost_usd": 0.000288,
+      "fresh": true,
+      "sandbox_name": "sbx-cairn2008753c5e36",
+      "success": true,
+      "wall_clock_s": 69.175
+    },
+    {
+      "boot_to_ready_s": 8.898,
+      "cost_usd": 0.0003,
+      "fresh": true,
+      "sandbox_name": "sbx-cairn60820be403c3",
+      "success": true,
+      "wall_clock_s": 71.979
+    },
+    {
+      "boot_to_ready_s": 10.214,
+      "cost_usd": 0.000307,
+      "fresh": true,
+      "sandbox_name": "sbx-cairn7e7019ff7e9d",
+      "success": true,
+      "wall_clock_s": 73.606
+    },
+    {
+      "boot_to_ready_s": 23.993,
+      "cost_usd": 0.000309,
+      "fresh": true,
+      "sandbox_name": "sbx-cairn5e08d14b408f",
+      "success": true,
+      "wall_clock_s": 74.045
+    },
+    {
+      "boot_to_ready_s": 8.088,
+      "cost_usd": 0.000329,
+      "fresh": true,
+      "sandbox_name": "sbx-cairnf084f0fbbaac",
+      "success": true,
+      "wall_clock_s": 78.95
+    },
+    {
+      "boot_to_ready_s": 9.317,
+      "cost_usd": 0.000334,
+      "fresh": true,
+      "sandbox_name": "sbx-cairn121c4c040cdb",
+      "success": true,
+      "wall_clock_s": 80.189
+    },
+    {
+      "boot_to_ready_s": 9.685,
+      "cost_usd": 0.000335,
+      "fresh": true,
+      "sandbox_name": "sbx-cairndcb1f8f9081d",
+      "success": true,
+      "wall_clock_s": 80.341
+    },
+    {
+      "boot_to_ready_s": 12.083,
+      "cost_usd": 0.000343,
+      "fresh": true,
+      "sandbox_name": "sbx-cairn77d195dca5eb",
+      "success": true,
+      "wall_clock_s": 82.226
+    },
+    {
+      "boot_to_ready_s": 9.83,
+      "cost_usd": 0.00035,
+      "fresh": true,
+      "sandbox_name": "sbx-cairnee4eae2b13e6",
+      "success": true,
+      "wall_clock_s": 84.07
+    },
+    {
+      "boot_to_ready_s": 10.562,
+      "cost_usd": 0.000357,
+      "fresh": true,
+      "sandbox_name": "sbx-cairn99c5b93b81e0",
+      "success": true,
+      "wall_clock_s": 85.641
+    }
+  ],
+  "success_rate": 0.9,
+  "total_cost_usd": 0.005299
+}

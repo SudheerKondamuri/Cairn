@@ -1,0 +1,6 @@
+{
+  "who": "AppSec engineers and small teams who receive free-text command-injection reports against web applications they own and need reproducible evidence before opening an engineering ticket.",
+  "agent_work": "The agent reads the supplied fixture source, investigates a reported CWE-78 route inside a disposable Celesto guest, sends bounded local HTTP probes, adapts after failed evidence, and submits a supported verdict.",
+  "proof_output": "A verified, not_reproduced, or inconclusive verdict with an independent marker recheck, source hash, exact request recipe, and complete attempt trace.",
+  "idea_source": "original"
+}
