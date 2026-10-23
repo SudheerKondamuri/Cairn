@@ -1,0 +1,9 @@
+{
+  "attack": "prompt_injection_exfil",
+  "sandbox_name": "sbx-contain175670411a35",
+  "host_untouched": true,
+  "blocked": true,
+  "tool_schema_blocked": true,
+  "network_probe": "{\"loopback_ok\": true, \"external_blocked\": true}",
+  "network_blocked": true
+}

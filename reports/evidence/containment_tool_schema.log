@@ -1,0 +1,1 @@
+blocked tool=run_shell reason=tool is not in the four-tool schema; raw shell and arbitrary host are unavailable
