@@ -1,0 +1,49 @@
+{
+  "agent_elapsed_s": 37.617,
+  "attempt_count": 1,
+  "boot_to_ready_s": 10.562,
+  "case_id": "a-v-wrong-route",
+  "cleaned_up": true,
+  "cost_usd": 0.000357,
+  "finding": {
+    "attempts": [
+      {
+        "body": "{\"output\": \"diagnose 127.0.0.1\\n\", \"error\": \"\"}",
+        "elapsed_ms": 13.36,
+        "marker_detected": true,
+        "outcome": "complete",
+        "param_name": "host",
+        "param_value": "127.0.0.1; touch /tmp/cairn-markers/cairn-controller; #",
+        "path": "/diagnose",
+        "status": 200
+      }
+    ],
+    "controller_fallback": true,
+    "fallback_reason": "LLM request failed: TimeoutError",
+    "independent_recheck": {
+      "fresh_token": "cairn-independent-39f405457444c6e6",
+      "marker_detected": true,
+      "outcome": "complete",
+      "request_constructed_by": "control_plane",
+      "status": 200
+    },
+    "proposal": {
+      "param_name": "host",
+      "param_value": "127.0.0.1; touch /tmp/cairn-markers/cairn-controller; #",
+      "path": "/diagnose",
+      "rationale": "The bounded controller fallback used the route and parameter found in the inspected fixture source after the model returned no actionable tool call. The marker observation and independent recheck determine the final verdict.",
+      "verdict": "verified"
+    },
+    "source_hash": "a52243277791daf80182b5bbdcabef1798d13bbfffe74a8ac9b3b32216f69e2c",
+    "verdict": "verified"
+  },
+  "fixture_port": 5000,
+  "fresh": true,
+  "sandbox_name": "sbx-cairn99c5b93b81e0",
+  "source_hash": "a52243277791daf80182b5bbdcabef1798d13bbfffe74a8ac9b3b32216f69e2c",
+  "success": true,
+  "truth": "vulnerable",
+  "variant": "wrong_route",
+  "verdict": "verified",
+  "wall_clock_s": 85.641
+}
