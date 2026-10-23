@@ -26,6 +26,7 @@ from runner import (
 from core.agent import CairnAgent, OpenAICompatibleClient
 from core.audit import CommandAuditLog
 from core.bundles import extract_source_archive
+from core.github import GitHubSourceError, download_archive
 from core.investigation import InvestigationSpec
 from core.investigation_report import build_investigation_report, render_markdown
 from core.tools import CairnToolDispatcher
@@ -168,7 +169,10 @@ def _read_report(report: str | None, report_file: Path | None) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--source", required=True, type=Path, help="source directory or tar archive")
+    source_group = parser.add_mutually_exclusive_group(required=True)
+    source_group.add_argument("--source", type=Path, help="source directory or tar archive")
+    source_group.add_argument("--github-url", help="HTTPS GitHub repository URL to fetch in the control plane")
+    parser.add_argument("--github-ref", default="main", help="GitHub branch, tag, or commit (default: main)")
     parser.add_argument("--report")
     parser.add_argument("--report-file", type=Path)
     parser.add_argument("--subject-type", default="http_app", choices=["http_app", "package_harness"])
@@ -201,13 +205,18 @@ def main(argv: list[str] | None = None) -> int:
             }
         )
         investigation_id = args.investigation_id or f"inv-{int(time.time())}"
-        source = args.source.resolve()
         with tempfile.TemporaryDirectory(prefix="cairn-source-") as temporary:
             source_root = Path(temporary)
-            if source.is_dir():
-                source_root = source
+            if args.github_url:
+                archive = Path(temporary) / "github-source.tar.gz"
+                download_archive(args.github_url, archive, ref=args.github_ref)
+                extract_source_archive(archive, source_root)
             else:
-                extract_source_archive(source, source_root)
+                source = args.source.resolve()
+                if source.is_dir():
+                    source_root = source
+                else:
+                    extract_source_archive(source, source_root)
             report = run_investigation(
                 spec,
                 source_root,
@@ -217,7 +226,7 @@ def main(argv: list[str] | None = None) -> int:
             )
         print(json.dumps(report, indent=2, sort_keys=True))
         return 0 if report["verdict"] != "inconclusive" and report["lifecycle"]["sandbox_deleted"] else 1
-    except (OSError, ValueError, LiveRuntimeError) as exc:
+    except (GitHubSourceError, OSError, ValueError, LiveRuntimeError) as exc:
         print(f"ERROR: {type(exc).__name__}: {exc}", file=sys.stderr)
         return 2
 

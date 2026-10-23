@@ -14,6 +14,7 @@ from core.bundles import BundleValidationError, validate_source_archive
 
 from .investigation_validation import validate_investigation_form
 from .repository import RepositoryError, RunRepository
+from .security import ApiRequestGuard
 from .validation import ValidationError, validate_run_payload
 
 
@@ -29,6 +30,10 @@ def create_app(
         UPLOAD_ROOT=os.getenv("CAIRN_UPLOAD_ROOT", "/var/lib/cairn/uploads"),
         MAX_CONTENT_LENGTH=250 * 1024 * 1024,
         JSON_SORT_KEYS=True,
+        API_KEY=os.getenv("CAIRN_API_KEY", ""),
+        REQUIRE_API_AUTH=os.getenv("CAIRN_REQUIRE_API_AUTH", "false").lower() == "true",
+        API_RATE_LIMIT=int(os.getenv("CAIRN_API_RATE_LIMIT", "60")),
+        API_RATE_WINDOW_S=float(os.getenv("CAIRN_API_RATE_WINDOW_S", "60")),
     )
     if config:
         app.config.update(config)
@@ -38,6 +43,32 @@ def create_app(
         if repository is not None
         else RunRepository(dsn=app.config.get("DATABASE_URL"))
     )
+    app.extensions["api_guard"] = ApiRequestGuard(
+        api_key=str(app.config["API_KEY"]),
+        require_auth=bool(app.config["REQUIRE_API_AUTH"] or app.config["API_KEY"]),
+        rate_limit=int(app.config["API_RATE_LIMIT"]),
+        window_s=float(app.config["API_RATE_WINDOW_S"]),
+    )
+
+    @app.before_request
+    def protect_api() -> tuple[dict[str, str], int] | tuple[dict[str, str], int, dict[str, str]] | None:
+        if not request.path.startswith("/api/"):
+            return None
+        guard: ApiRequestGuard = app.extensions["api_guard"]
+        supplied = request.headers.get("X-Cairn-API-Key")
+        if not supplied:
+            authorization = request.headers.get("Authorization", "")
+            if authorization.startswith("Bearer "):
+                supplied = authorization[7:].strip()
+        message, status, retry_after = guard.check(
+            client_id=request.remote_addr or "unknown",
+            supplied_key=supplied,
+        )
+        if status == 200:
+            return None
+        if retry_after is not None:
+            return {"error": message}, status, {"Retry-After": str(retry_after)}
+        return {"error": message}, status
 
     @app.get("/health")
     def health() -> tuple[dict[str, str], int]:
@@ -49,6 +80,9 @@ def create_app(
     def ready() -> tuple[dict[str, str], int]:
         """Report whether the API can reach its ledger dependency."""
 
+        guard: ApiRequestGuard = app.extensions["api_guard"]
+        if guard.configuration_error:
+            return {"status": "not_ready", "error": "api authentication is not configured"}, 503
         try:
             _repository().list_runs()
         except RepositoryError:

@@ -185,6 +185,66 @@ def test_investigation_endpoint_rejects_missing_source(tmp_path) -> None:
     assert response.status_code == 400
 
 
+def test_sensitive_api_routes_require_configured_api_key(tmp_path) -> None:
+    repository = MemoryRepository()
+    app = create_app(
+        {
+            "TESTING": True,
+            "UPLOAD_ROOT": str(tmp_path),
+            "API_KEY": "test-secret",
+            "REQUIRE_API_AUTH": True,
+        },
+        repository=repository,
+    )
+    client = app.test_client()
+
+    assert client.get("/api/runs").status_code == 401
+    authorized = client.get("/api/runs", headers={"X-Cairn-API-Key": "test-secret"})
+    assert authorized.status_code == 200
+
+
+def test_ready_fails_closed_when_production_auth_is_missing() -> None:
+    app = create_app(
+        {"TESTING": True, "REQUIRE_API_AUTH": True},
+        repository=MemoryRepository(),
+    )
+
+    response = app.test_client().get("/ready")
+
+    assert response.status_code == 503
+    assert response.get_json() == {
+        "status": "not_ready",
+        "error": "api authentication is not configured",
+    }
+
+
+def test_ready_rejects_placeholder_production_auth_key() -> None:
+    app = create_app(
+        {"TESTING": True, "API_KEY": "replace-me", "REQUIRE_API_AUTH": True},
+        repository=MemoryRepository(),
+    )
+
+    assert app.test_client().get("/ready").status_code == 503
+
+
+def test_api_rate_limit_returns_retry_after(tmp_path) -> None:
+    app = create_app(
+        {
+            "TESTING": True,
+            "UPLOAD_ROOT": str(tmp_path),
+            "API_RATE_LIMIT": 1,
+            "API_RATE_WINDOW_S": 60,
+        },
+        repository=MemoryRepository(),
+    )
+    client = app.test_client()
+
+    assert client.get("/api/runs").status_code == 200
+    limited = client.get("/api/runs")
+    assert limited.status_code == 429
+    assert limited.headers["Retry-After"]
+
+
 class FakeCursor:
     def __init__(self, connection: "FakeConnection") -> None:
         self.connection = connection

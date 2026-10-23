@@ -9,6 +9,7 @@ import pytest
 
 from core.bundles import BundleValidationError, collect_source_files, validate_source_archive
 from core.agent import CairnAgent, openai_tool_definitions
+from core.github import GitHubSourceError, archive_url, repository_parts
 from core.investigation import InvestigationSpec, InvestigationSpecError
 from core.investigation_report import build_investigation_report, render_markdown
 from core.sandbox import FakeSandboxAdapter, SandboxResult
@@ -135,6 +136,23 @@ def test_source_directory_collection_ignores_generated_python_caches(tmp_path: P
     files = collect_source_files(tmp_path)
 
     assert [relative for _path, relative in files] == ["app.py"]
+
+
+def test_github_source_url_is_restricted_to_one_https_repository() -> None:
+    assert repository_parts("https://github.com/octocat/Hello-World.git") == (
+        "octocat",
+        "Hello-World",
+    )
+    assert archive_url("https://github.com/octocat/Hello-World", ref="main") == (
+        "https://github.com/octocat/Hello-World/archive/main.tar.gz"
+    )
+
+    with pytest.raises(GitHubSourceError):
+        repository_parts("https://github.com/octocat/Hello-World/issues")
+    with pytest.raises(GitHubSourceError):
+        repository_parts("https://attacker.example/octocat/Hello-World")
+    with pytest.raises(GitHubSourceError):
+        archive_url("https://github.com/octocat/Hello-World", ref="../main")
 
 
 def test_package_harness_uses_fresh_marker_recheck() -> None:
