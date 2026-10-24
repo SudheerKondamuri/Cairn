@@ -3,14 +3,17 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-if [[ ! -f .env ]]; then
-  printf 'ERROR: .env is required for the local Docker demo and is ignored by Git.\n' >&2
+env_file="${CAIRN_ENV_FILE:-/var/tmp/cairn.env}"
+if [[ ! -f "$env_file" ]]; then
+  printf 'ERROR: credentials file not found: %s\n' "$env_file" >&2
+  printf 'Set CAIRN_ENV_FILE to your local env file outside the repository.\n' >&2
   exit 2
 fi
 
 set -a
-. ./.env
+. "$env_file"
 set +a
+export CAIRN_ENV_FILE="$env_file"
 
 api_headers=()
 if [[ "${CAIRN_REQUIRE_API_AUTH:-false}" == "true" || -n "${CAIRN_API_KEY:-}" ]]; then
@@ -34,7 +37,7 @@ archive="$(mktemp /tmp/cairn-northstar-XXXXXX.tar.gz)"
 trap 'rm -f "$archive"' EXIT
 
 echo "== Start Cairn API, Postgres ledger, and worker containers =="
-docker compose --profile worker up --build -d
+docker compose --env-file "$env_file" --profile worker up --build -d
 
 echo "== Wait for the trusted control plane =="
 for _ in $(seq 1 60); do
@@ -75,7 +78,7 @@ done
 
 if [[ "$status" != "completed" && "$status" != "failed" ]]; then
   printf 'ERROR: investigation did not finish; last status=%s\n' "$status" >&2
-  docker compose logs --tail=100 worker >&2 || true
+  docker compose --env-file "$env_file" logs --tail=100 worker >&2 || true
   exit 1
 fi
 
@@ -89,6 +92,7 @@ print(f"status={payload['status']}")
 if payload.get("status") == "failed":
     raise SystemExit(payload.get("error") or "worker failed")
 result = payload.get("result") or {}
+evidence = result.get("evidence") or {}
 recheck = evidence.get("independent_recheck") or {}
 lifecycle = result.get("lifecycle") or {}
 request = evidence.get("request") or {}
@@ -105,4 +109,4 @@ echo "== Host report written by the worker =="
 printf '%s\n' "reports/investigations/${investigation_id}.md"
 echo
 echo "Docker services remain running for inspection. After recording, run:"
-echo "docker compose --profile worker down"
+printf 'docker compose --env-file %q --profile worker down\n' "$env_file"

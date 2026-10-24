@@ -3,7 +3,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 run_id="inv-demo-$(date -u +%Y%m%d-%H%M%S)"
-env_file="${CAIRN_ENV_FILE:-.env}"
+env_file="${CAIRN_ENV_FILE:-/var/tmp/cairn.env}"
 
 if [[ ! -f "$env_file" ]]; then
   printf 'ERROR: live credentials file not found: %s\n' "$env_file" >&2

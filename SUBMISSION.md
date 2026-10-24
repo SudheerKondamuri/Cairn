@@ -21,7 +21,7 @@ conditions. It is not a universal safety claim.
 | Northstar patched comparison | `not_reproduced`; service reachable and marker-free | `reports/investigations/inv-demo-northstar-patched.json` and `.md` |
 | Non-fixture vulnerable dynamic app | `verified` | `reports/investigations/inv-real-dynamic-vercel-free-20261024.json` |
 | Non-fixture patched dynamic app | `not_reproduced` | `reports/investigations/inv-real-dynamic-vercel-minimax-patched-final-20261024.json` |
-| 20-case Celesto evaluation | 18/20 infrastructure success; TP=9, FP=0, FN=1, TN=10 | `reports/reliability.json`, `reports/postmortem.md` |
+| 20-case Celesto evaluation | 18/20 run completion; inspect verdict quality separately | `reports/reliability.json`, `reports/live/`, `reports/postmortem.md` |
 | Prompt-injection containment | blocked; host untouched; external egress blocked | `reports/containment.json`, `reports/evidence/containment_network_probe.log` |
 | Persistence/recovery | file survived stop/start | `reports/evidence/persistence_probe.log` |
 | Network policy | loopback worked; external probe blocked | `reports/evidence/network_policy_probe.log` |
@@ -42,7 +42,7 @@ already complete; it is not an item still waiting to be run.
 | One live vulnerable smoke case | **PASS** | `reports/live/a-v-accurate.json`; verified with independent recheck and cleanup |
 | Required 20-case evaluation | **PASS — complete** | `reports/reliability.json`; exactly 20 fresh case reports under `reports/live/` |
 | 20-case infrastructure reliability | **Measured, not perfect** | 18/20 = 0.900; two Cloud HTTP 503 creation failures were retained and cleaned up |
-| 20-case confusion matrix | **PASS with recorded limitation** | TP=9, FP=0, FN=1, TN=10; the FN was the HTTP 503 infrastructure failure, not a patched verdict |
+| Verdict quality | **Inspect retained per-case outcomes** | Setup failures have no verdict and must be distinguished from completed investigations with incorrect verdicts |
 | Prompt-injection containment | **PASS from retained live evidence** | `reports/containment.json`; tool schema blocked, host untouched, external egress blocked |
 | Step-7 persistence/recovery policy | **PASS** | `reports/failure_policy.json`, `reports/failure_trace.jsonl`, `reports/evidence/persistence_probe.log` |
 | Cleanup on success/failure/interruption | **PASS** | `reports/lifecycle.json`; current Celesto Cloud list is empty |
@@ -55,10 +55,9 @@ already complete; it is not an item still waiting to be run.
 | Worker archive claim/extract/complete/delete mechanics | **PASS in smoke test** | Worker mechanics tested without LLM |
 | Reproducible worker deployment | **Prepared, Docker build unverified here** | `Dockerfile.worker`; start with `docker compose --profile worker up --build -d` on a Docker-enabled host |
 | Dependency policy and package-harness contract | **PASS in tests** | `tests/test_dynamic_mvp.py`; no real dependency-heavy repo was needed |
-| Suspicious Package Detonator idea | **PARTIAL / not shipped** | Dependency install exists, but install telemetry, filesystem/process/network snapshots, and package risk scoring are not implemented |
 | Optional five-job concurrency stretch | **Attempted and documented** | `reports/concurrency.json`; 1/5 completed, four free-trial HTTP 429 responses |
 | Public repository | **PUSHED — verify visibility** | `origin/main` contains the current commit; confirm the repository is public and paste its URL into the submission form |
-| Demo video, three minutes or less | **PENDING manual action** | `demo/walkthrough-script.md` and executable `demo/run-demo.sh` are ready; `demo/walkthrough.mp4` is still missing |
+| Demo video, three minutes or less | **Needs trimming: current recording is about 4:10** | `demo/walkthrough.mp4`; reproduce using `demo/run-demo.sh` or `demo/run-docker-demo.sh` |
 
 ## GitHub submission hygiene
 
@@ -72,7 +71,8 @@ Never commit `.env` or any provider/LLM/API key. Also exclude `.cairn/`,
 `__pycache__/`, `*.pyc`, local uploaded archives, temporary recordings, and
 private source. If the video is uploaded separately, link it from this file or
 the README instead of committing a large binary. Keep only final, real demo
-reports rather than failed retry output created while recording.
+reports for navigation. Keep all required evaluation failures and audit records;
+supplementary recording retries can be archived outside the checkout.
 
 ### The 20-case test in detail
 
@@ -108,12 +108,12 @@ python3 scripts/investigate.py \
 Then inspect:
 
 ```text
-reports/investigations/inv-demo-vulnerable.json
-reports/investigations/inv-demo-vulnerable.md
+reports/investigations/inv-demo-northstar.json
+reports/investigations/inv-demo-northstar.md
 ```
 
-The patched counterpart is in `demo-subject-patched/`. The demo shot list and
-narration are in `demo/walkthrough-script.md`.
+The patched counterpart is in `demo-subject-patched/`. The committed recording
+is `demo/walkthrough.mp4`; reproduction commands are in `demo/README.md`.
 
 The preferred Docker-backed recording command is:
 
@@ -133,12 +133,12 @@ python3 -m compileall -q api core demo-subject demo-subject-patched fixtures gue
 python3 scripts/validate_reports.py --live
 ```
 
-The expected current results are 47 tests passing, successful compilation, and
+The expected current results are 48 tests passing, successful compilation, and
 `VALID: Cairn submission reports ...`.
 
 ## Final manual submission steps
 
-1. Record `demo/walkthrough.mp4` (three minutes or less) using the shot list.
+1. Check that `demo/walkthrough.mp4` is three minutes or less; trim or replace it if needed.
 2. Confirm the pushed repository is public and that `.env`, keys, uploaded
    bundles, and private source are excluded.
 3. Confirm GitHub Actions passes, then submit the repository URL, video URL/file,
