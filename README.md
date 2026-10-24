@@ -100,10 +100,11 @@ directory is cleared, and the request is retried with a fresh token. This
 preserves known-good setup while avoiding an unbounded retry loop. Every path,
 including interruption, ends with explicit deletion.
 
-Evidence locations are documented in:
+Recorded evidence is retained in:
 
-- `reports/evidence/network_policy_design.md`
-- `reports/evidence/persistence_design.md`
+- `reports/evidence/network_policy_probe.log`
+- `reports/evidence/persistence_probe.log`
+- `reports/failure_trace.jsonl`
 - `scripts/gate0.py`
 - `scripts/run_step7_failure.py`
 
@@ -124,7 +125,7 @@ The default Compose stack contains two services:
 - `ledger` on PostgreSQL
 
 An optional `worker` profile is included for a reproducible queue deployment.
-Start it with `docker compose --profile worker up --build -d`; it shares the
+Start it with `docker compose --env-file /var/tmp/cairn.env --profile worker up --build -d`; it shares the
 ledger and upload/report volumes with the API. The worker image pins the
 installed Celesto SDK version. Docker build verification must be performed on a
 Docker-enabled host.
@@ -410,7 +411,7 @@ DATABASE_URL=postgresql://ledger:replace-me@127.0.0.1:5432/ledger \
 For the optional Compose worker instead:
 
 ```bash
-docker compose --profile worker up --build -d
+docker compose --env-file /var/tmp/cairn.env --profile worker up --build -d
 ```
 
 Then retrieve the status and detailed report using the returned
@@ -425,11 +426,11 @@ curl http://localhost:8080/api/investigations/<investigation_id>
 Install Docker Desktop or Docker Engine with Compose, then run:
 
 ```bash
-cp .env.example .env
+cp .env.example /var/tmp/cairn.env
 # These two values must use the same password.
 # POSTGRES_PASSWORD=replace-me
 # DATABASE_URL=postgresql://ledger:replace-me@ledger:5432/ledger
-docker compose up --build -d
+docker compose --env-file /var/tmp/cairn.env up --build -d
 curl http://localhost:8080/health
 curl http://localhost:8080/ready
 curl http://localhost:8080/api/runs
@@ -438,20 +439,20 @@ curl http://localhost:8080/api/runs
 The first database boot loads `seeds/01_runs.sql`; no manual migration is
 needed. The ledger is intentionally kept on the private Compose network rather
 than published on a host port; the API and worker reach it as `ledger:5432`.
-Keep the password in `DATABASE_URL` equal to `POSTGRES_PASSWORD` in `.env`; the
+Keep the password in `DATABASE_URL` equal to `POSTGRES_PASSWORD` in the external env file; the
 example uses `replace-me` consistently for the local demo. Docker is not
 available in the current development container, so this check must be run on a
 Docker-enabled machine.
 
 If `/health` returns `{"status":"ok"}` but `/api/runs` returns `database
 unavailable`, the API is alive but its Postgres credentials do not match. Fix
-the two values in `.env`, then recreate the API. If the database was initialized
+the two values in the external env file, then recreate the API. If the database was initialized
 with a different password and this is only disposable demo data, reset the
 volume before starting again:
 
 ```bash
-docker compose down -v
-docker compose up --build -d
+docker compose --env-file /var/tmp/cairn.env down -v
+docker compose --env-file /var/tmp/cairn.env up --build -d
 curl http://localhost:8080/health
 curl http://localhost:8080/ready
 curl http://localhost:8080/api/runs
