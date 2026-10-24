@@ -17,17 +17,15 @@ and the reported diagnostics route `/api/v1/diagnostics/resolve` with parameter
 
 ## 0:45–1:25 — Live dynamic investigation
 
-Run or show the recorded command:
+Run the Docker-backed version for the video:
 
 ```bash
-python3 scripts/investigate.py \
-  --source demo-subject \
-  --report-file demo-subject/security-report.txt \
-  --runtime python \
-  --start-argv python3 app.py \
-  --port 5002 \
-  --investigation-id inv-demo-northstar
+demo/run-docker-demo.sh
 ```
+
+The script starts the API, Postgres ledger, and worker, queues the source via
+the API, and lets the worker create the Celesto guest. The direct CLI command
+remains available as a faster fallback if Docker is unavailable.
 
 Show the model-driven sequence in `logs/commands.jsonl` or the terminal:
 

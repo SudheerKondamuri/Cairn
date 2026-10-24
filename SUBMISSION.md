@@ -115,6 +115,16 @@ reports/investigations/inv-demo-vulnerable.md
 The patched counterpart is in `demo-subject-patched/`. The demo shot list and
 narration are in `demo/walkthrough-script.md`.
 
+The preferred Docker-backed recording command is:
+
+```bash
+demo/run-docker-demo.sh
+```
+
+It starts the trusted API, Postgres ledger, and worker, then submits the
+Northstar source through the API. The worker creates the Celesto guest and
+writes the detailed report under `reports/investigations/`.
+
 ## Checks run for this checkout
 
 ```bash

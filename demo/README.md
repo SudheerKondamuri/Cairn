@@ -18,6 +18,18 @@ CAIRN_ENV_FILE=/var/tmp/cairn.env demo/run-demo.sh
 The script prints only the investigation result and cleanup state; never show
 the environment file or an API key.
 
+For the full Docker/API/worker version of the demo, keep the local `.env` in the
+repository root and run:
+
+```bash
+demo/run-docker-demo.sh
+```
+
+That starts the trusted API and Postgres ledger, queues the Northstar source
+through the multipart API, and lets the worker create the Celesto guest. It
+leaves the Docker services running so their health and logs can be shown; stop
+them after recording with `docker compose --profile worker down`.
+
 The idea-bank concept “Suspicious Package Detonator” is not claimed as part of
 this submission: Cairn has a bounded offline dependency installer and package
 harness, but not the separate install-telemetry/snapshot/risk-scoring product.

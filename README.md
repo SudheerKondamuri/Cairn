@@ -436,10 +436,12 @@ curl http://localhost:8080/api/runs
 ```
 
 The first database boot loads `seeds/01_runs.sql`; no manual migration is
-needed. Keep the password in `DATABASE_URL` equal to `POSTGRES_PASSWORD` in
-`.env`; the example uses `replace-me` consistently for the local demo. Docker
-is not available in the current development container, so this check must be
-run on a Docker-enabled machine.
+needed. The ledger is intentionally kept on the private Compose network rather
+than published on a host port; the API and worker reach it as `ledger:5432`.
+Keep the password in `DATABASE_URL` equal to `POSTGRES_PASSWORD` in `.env`; the
+example uses `replace-me` consistently for the local demo. Docker is not
+available in the current development container, so this check must be run on a
+Docker-enabled machine.
 
 If `/health` returns `{"status":"ok"}` but `/api/runs` returns `database
 unavailable`, the API is alive but its Postgres credentials do not match. Fix

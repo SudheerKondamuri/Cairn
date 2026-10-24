@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import tempfile
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 from runner import ROOT, load_env
@@ -61,15 +62,34 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     load_env()
     repository = RunRepository()
+    return run_worker(
+        repository,
+        upload_root=args.upload_root,
+        output_dir=args.output_dir,
+        once=args.once,
+        poll_seconds=args.poll_seconds,
+    )
+
+
+def run_worker(
+    repository: RunRepository,
+    *,
+    upload_root: Path,
+    output_dir: Path,
+    once: bool = False,
+    poll_seconds: float = 5.0,
+    sleep: Callable[[float], None] = time.sleep,
+) -> int:
+    """Keep polling so jobs submitted after startup are not stranded."""
+
     while True:
         processed = process_once(
-            repository,
-            upload_root=args.upload_root,
-            output_dir=args.output_dir,
+            repository, upload_root=upload_root, output_dir=output_dir
         )
-        if args.once or not processed:
+        if once:
             return 0
-        time.sleep(max(args.poll_seconds, 0.1))
+        if not processed:
+            sleep(max(poll_seconds, 0.1))
 
 
 if __name__ == "__main__":

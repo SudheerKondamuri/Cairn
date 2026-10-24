@@ -23,3 +23,18 @@ jobs:
         run: python -m compileall -q api core fixtures guest scripts tests
       - name: Validate retained submission evidence
         run: python scripts/validate_reports.py --live
+      - name: Docker Compose control-plane smoke
+        run: |
+          trap 'docker compose --profile worker down -v --remove-orphans' EXIT
+          docker compose up --build -d
+          for attempt in $(seq 1 60); do
+            if curl -fsS http://localhost:8080/ready >/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          curl -fsS http://localhost:8080/health
+          curl -fsS http://localhost:8080/ready
+          curl -fsS http://localhost:8080/api/runs
+          docker compose --profile worker up --build -d
+          docker compose ps
