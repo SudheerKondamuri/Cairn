@@ -33,6 +33,12 @@ from core.tools import CairnToolDispatcher
 from core.validation import ToolPolicy
 
 
+def _progress(message: str) -> None:
+    """Emit human-readable progress without exposing credentials or payloads."""
+
+    print(f"[cairn] {message}", flush=True)
+
+
 def run_investigation(
     spec: InvestigationSpec,
     source_root: Path,
@@ -58,11 +64,14 @@ def run_investigation(
     }
 
     try:
+        _progress(f"creating Celesto guest {name}")
         guest = LiveGuest(name, audit_path=ROOT / "logs/commands.jsonl")
         guest.start()
+        _progress(f"guest ready {name}")
         upload_guest_helpers(guest)
         subject_manifest = upload_source_tree(guest, source_root)
         lifecycle["source_uploaded"] = True
+        _progress("source and fixed guest helpers uploaded")
         adapter = guest.adapter(
             port=spec.port or 5000,
             runtime=spec.runtime,
@@ -87,6 +96,7 @@ def run_investigation(
             audit=CommandAuditLog(ROOT / "logs/commands.jsonl", sandbox_name=name),
             policy=policy,
         )
+        _progress("preparing offline dependencies")
         dependency_result = dispatcher.install_dependencies()
         if (
             dependency_result.get("error")
@@ -97,11 +107,14 @@ def run_investigation(
                 f"dependency preparation failed: {dependency_result.get('error', dependency_result)}"
             )
         if spec.subject_type == "http_app":
+            _progress("starting supplied application inside the guest")
             start_subject(guest, spec)
             lifecycle["application_started"] = True
             if spec.port is not None:
                 wait_for_fixture(guest, spec.port)
+                _progress(f"application ready on guest loopback port {spec.port}")
 
+        _progress("running bounded investigation tools")
         client = OpenAICompatibleClient(
             base_url=os.getenv("LLM_BASE_URL", ""),
             api_key=os.getenv("LLM_API_KEY", ""),
@@ -122,15 +135,19 @@ def run_investigation(
             },
         )
         finding = agent_result.finding
+        _progress(f"investigation finished with verdict {agent_result.verdict}")
     except Exception as exc:
         error = f"{type(exc).__name__}: {exc}"
+        _progress(f"investigation stopped: {error}")
     finally:
         if dispatcher is not None:
             dependency_events = list(dispatcher.dependency_events)
         if guest is not None:
             try:
+                _progress(f"deleting Celesto guest {name}")
                 guest.delete()
                 lifecycle["sandbox_deleted"] = True
+                _progress("Celesto guest deleted")
             except Exception as exc:
                 lifecycle["cleanup_error"] = f"{type(exc).__name__}: {exc}"
 
@@ -158,6 +175,7 @@ def run_investigation(
     (output_dir / f"{investigation_id}.md").write_text(
         render_markdown(report), encoding="utf-8"
     )
+    _progress(f"reports written under {output_dir}")
     return report
 
 
