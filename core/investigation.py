@@ -68,8 +68,6 @@ class InvestigationSpec:
         if subject_type == "http_app":
             if not start_argv:
                 raise InvestigationSpecError("http_app requires start_argv")
-            if port is None:
-                raise InvestigationSpecError("http_app requires port")
         elif not test_argv:
             raise InvestigationSpecError("package_harness requires test_argv")
 
