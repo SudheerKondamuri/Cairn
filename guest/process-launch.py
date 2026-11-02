@@ -43,6 +43,7 @@ def main() -> int:
         environment = None
         if runtime == "python":
             environment = os.environ.copy()
+            environment["PATH"] = "/input/deps/bin:" + environment.get("PATH", "/usr/bin:/bin")
             current = environment.get("PYTHONPATH", "")
             environment["PYTHONPATH"] = "/input/deps" + ((":" + current) if current else "")
         process = subprocess.Popen(
