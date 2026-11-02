@@ -70,7 +70,14 @@ def validate_source_archive(path: str | os.PathLike[str]) -> list[tarfile.TarInf
 
     try:
         with tarfile.open(archive, "r:*") as stream:
-            members = stream.getmembers()
+            members = []
+            total = 0
+            for member in stream:
+                _validate_member(member)
+                members.append(member)
+                total += member.size if member.isfile() else 0
+                if len(members) > MAX_SOURCE_FILES or total > MAX_SOURCE_BYTES:
+                    raise BundleValidationError("source archive exceeds the size or member limit")
     except (OSError, tarfile.TarError) as exc:
         raise BundleValidationError("source archive cannot be read") from exc
 
@@ -98,7 +105,7 @@ def extract_source_archive(
     target = Path(destination).resolve()
     target.mkdir(parents=True, exist_ok=True)
     with tarfile.open(archive, "r:*") as stream:
-        stream.extractall(target, members=members)
+        stream.extractall(target, members=members, filter="data")
     return target
 
 
