@@ -57,6 +57,7 @@ def download_archive(
     *,
     ref: str = "main",
     timeout_s: float = 30.0,
+    max_bytes: int = MAX_ARCHIVE_BYTES,
 ) -> Path:
     """Download one GitHub source archive in the trusted control plane.
 
@@ -79,9 +80,9 @@ def download_archive(
         headers={"User-Agent": "cairn-source-fetch/1.0", "Accept": "application/gzip"},
     )
     try:
-        with urllib.request.urlopen(request, timeout=timeout_s) as response, target.open("wb") as stream:
+        with urllib.request.build_opener(_GitHubRedirects()).open(request, timeout=timeout_s) as response, target.open("wb") as stream:
             length = response.headers.get("Content-Length")
-            if length is not None and int(length) > MAX_ARCHIVE_BYTES:
+            if length is not None and int(length) > max_bytes:
                 raise GitHubSourceError("GitHub archive exceeds the source size limit")
             total = 0
             while True:
@@ -89,13 +90,25 @@ def download_archive(
                 if not chunk:
                     break
                 total += len(chunk)
-                if total > MAX_ARCHIVE_BYTES:
+                if total > max_bytes:
                     raise GitHubSourceError("GitHub archive exceeds the source size limit")
                 stream.write(chunk)
     except GitHubSourceError:
         target.unlink(missing_ok=True)
         raise
-    except (OSError, urllib.error.URLError, urllib.error.HTTPError, ValueError) as exc:
+    except urllib.error.HTTPError as exc:
+        target.unlink(missing_ok=True)
+        detail = "Repository or branch not found. Check the URL and ref; only public repositories are supported." if exc.code == 404 else f"GitHub returned HTTP {exc.code}. Retry later or upload an archive."
+        raise GitHubSourceError(detail) from exc
+    except (OSError, urllib.error.URLError, ValueError) as exc:
         target.unlink(missing_ok=True)
         raise GitHubSourceError(f"GitHub archive download failed: {type(exc).__name__}") from exc
     return target
+
+
+class _GitHubRedirects(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        parsed = urllib.parse.urlsplit(newurl)
+        if parsed.scheme != 'https' or parsed.netloc not in {'github.com', 'codeload.github.com'}:
+            raise GitHubSourceError('GitHub returned an untrusted redirect')
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
