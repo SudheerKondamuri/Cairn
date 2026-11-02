@@ -272,7 +272,7 @@ class CelestoSandboxAdapter:
         )
         if self._audit:
             self._audit(command)
-        return _coerce_result(self.computer.run(command))
+        return _coerce_result(self.computer.run(command, timeout=300) if helper == "dependency-install" else self.computer.run(command))
 
     def run_guest_helper(self, helper: str, arguments: Sequence[str]) -> SandboxResult:
         return self._run_helper(helper, arguments)
@@ -344,6 +344,7 @@ class CelestoSandboxAdapter:
                 self.runtime,
                 self.dependency_mode,
                 "true" if self.allow_install_scripts else "false",
+                self.working_directory,
             ],
         )
         try:
