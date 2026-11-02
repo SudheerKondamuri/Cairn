@@ -22,7 +22,7 @@ def build_investigation_report(
     verdict = str(finding.get("verdict") or "inconclusive")
     attempts = list(finding.get("attempts") or [])
     independent = finding.get("independent_recheck")
-    source_hash = finding.get("source_hash")
+    source_hash = finding.get("source_hash") or ((lifecycle or {}).get("subject_manifest") or {}).get("source_hash")
     summary, why, remediation, next_action = _explanation(
         verdict=verdict,
         finding=finding,
