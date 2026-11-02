@@ -42,6 +42,7 @@ def main() -> int:
         environment = os.environ.copy()
         environment["CAIRN_MARKER_TOKEN"] = marker
         if runtime == "python":
+            environment["PATH"] = "/input/deps/bin:" + environment.get("PATH", "/usr/bin:/bin")
             current = environment.get("PYTHONPATH", "")
             environment["PYTHONPATH"] = "/input/deps" + ((":" + current) if current else "")
         result = subprocess.run(
