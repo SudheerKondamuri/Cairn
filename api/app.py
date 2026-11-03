@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import os
 import secrets
+import hashlib
+import re
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
@@ -32,6 +34,8 @@ def create_app(
         JSON_SORT_KEYS=True,
         API_KEY=os.getenv("CAIRN_API_KEY", ""),
         REQUIRE_API_AUTH=os.getenv("CAIRN_REQUIRE_API_AUTH", "false").lower() == "true",
+        LOCAL_ACCESS=os.getenv("CAIRN_ACCESS_MODE", "hosted") == "local",
+        ADMIN_IDENTITIES=os.getenv("CAIRN_ADMIN_IDENTITIES", ""),
         API_RATE_LIMIT=int(os.getenv("CAIRN_API_RATE_LIMIT", "60")),
         API_RATE_WINDOW_S=float(os.getenv("CAIRN_API_RATE_WINDOW_S", "60")),
     )
@@ -61,7 +65,7 @@ def create_app(
             if authorization.startswith("Bearer "):
                 supplied = authorization[7:].strip()
         message, status, retry_after = guard.check(
-            client_id=request.remote_addr or "unknown",
+            client_id=(hashlib.sha256(request.headers.get("X-Cairn-Session", "").encode()).hexdigest() if request.headers.get("X-Cairn-Session") else request.remote_addr or "unknown"),
             supplied_key=supplied,
         )
         if status == 200:
@@ -160,6 +164,23 @@ def create_app(
             return {"error": "source storage unavailable"}, 503
         return {"investigation_id": investigation_id, "status": "queued"}, 202
 
+    @app.get("/api/investigations")
+    def list_investigations() -> tuple[dict[str, Any], int]:
+        try:
+            limit = int(request.args.get("limit", "25"))
+        except ValueError:
+            return {"error": "limit must be an integer"}, 400
+        cursor = request.args.get("cursor", "")
+        query = request.args.get("q", "")
+        status = request.args.get("status", "")
+        if not 1 <= limit <= 50 or len(query) > 100 or (cursor and not re.fullmatch(r"inv-[a-zA-Z0-9-]{1,100}", cursor)) or status not in {"", "queued", "running", "completed", "failed"}:
+            return {"error": "invalid history filters"}, 400
+        try:
+            return _repository().list_investigations(limit=limit, cursor=cursor, query=query, status=status), 200
+        except RepositoryError:
+            app.logger.exception("unable to list investigations")
+            return {"error": "database unavailable"}, 503
+
     @app.get("/api/investigations/<investigation_id>")
     def get_investigation(investigation_id: str) -> tuple[dict[str, Any], int]:
         try:
@@ -172,6 +193,8 @@ def create_app(
         public = {key: value for key, value in investigation.items() if key != "source_path"}
         return public, 200
 
+    from .web_api import register_web
+    register_web(app)
     return app
 
 
