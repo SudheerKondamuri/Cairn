@@ -173,6 +173,44 @@ class RunRepository:
         except Exception as exc:
             raise RepositoryError("could not get investigation") from exc
 
+    def list_investigations(self, *, limit: int = 25, cursor: str = "", query: str = "", status: str = "") -> dict[str, Any]:
+        """Bounded keyset history; source paths and full reports stay out of lists."""
+        connection = self._connection_for_operation()
+        try:
+            self._ensure_investigations_schema(connection)
+            clauses: list[str] = []
+            params: list[Any] = []
+            if cursor:
+                clauses.append("(created_at, investigation_id) < (SELECT created_at, investigation_id FROM investigations WHERE investigation_id = %s)")
+                params.append(cursor)
+            if query:
+                clauses.append("(investigation_id ILIKE %s OR report ILIKE %s)")
+                params.extend([f"%{query}%", f"%{query}%"])
+            if status:
+                clauses.append("status = %s")
+                params.append(status)
+            where = " WHERE " + " AND ".join(clauses) if clauses else ""
+            params.append(limit + 1)
+            with connection.cursor() as db_cursor:
+                db_cursor.execute(
+                    "SELECT investigation_id, status, result->>'verdict', created_at, updated_at, "
+                    "manifest->>'runtime', manifest->>'subject_type', split_part(report, E'\\n', 1) "
+                    "FROM investigations" + where + " ORDER BY created_at DESC, investigation_id DESC LIMIT %s",
+                    tuple(params),
+                )
+                rows = db_cursor.fetchall()
+            keys = ("investigation_id", "status", "verdict", "created_at", "updated_at", "runtime", "subject_type", "title")
+            items = [{key: _serialize_timestamp(value) for key, value in zip(keys, row, strict=True)} for row in rows[:limit]]
+            for item in items:
+                item["title"] = str(item.get("title") or "Investigation")[:120]
+            return {"items": items, "next_cursor": items[-1]["investigation_id"] if len(rows) > limit and items else None}
+        except Exception as exc:
+            try:
+                connection.rollback()
+            except Exception:
+                pass
+            raise RepositoryError("could not list investigations") from exc
+
     def claim_next_investigation(self) -> dict[str, Any] | None:
         connection = self._connection_for_operation()
         try:
