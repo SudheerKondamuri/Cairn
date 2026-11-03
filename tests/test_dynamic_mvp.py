@@ -62,6 +62,16 @@ def test_investigation_spec_validates_http_and_harness_inputs() -> None:
     assert http_spec.start_argv == ("python3", "app.py")
     assert http_spec.port == 5000
 
+    zero_config_http = InvestigationSpec.from_mapping(
+        {
+            "subject_type": "http_app",
+            "report": "Vulnerability on auto-detected port.",
+            "runtime": "python",
+            "start_argv": ["python3", "app.py"],
+        }
+    )
+    assert zero_config_http.port is None
+
     harness_spec = InvestigationSpec.from_mapping(
         {
             "subject_type": "package_harness",
