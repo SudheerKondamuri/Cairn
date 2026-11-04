@@ -96,7 +96,7 @@ def sha256_file(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _network_off(computer: Any) -> None:
+def _network_off(computer: Any, *, enabled: bool = False) -> None:
     provider = getattr(computer, "_provider", None)
     body = getattr(provider, "_body", None)
     if body is None or not hasattr(body, "network_policy"):
@@ -107,7 +107,7 @@ def _network_off(computer: Any) -> None:
         from _celesto_cloud_api.models.network_policy import NetworkPolicy
         from _celesto_cloud_api.models.network_policy_mode import NetworkPolicyMode
 
-        body.network_policy = NetworkPolicy(mode=NetworkPolicyMode.OFF)
+        body.network_policy = NetworkPolicy(mode=NetworkPolicyMode.OPEN if enabled else NetworkPolicyMode.OFF)
     except (ImportError, AttributeError, TypeError) as exc:
         raise LiveRuntimeError("could not configure Celesto Cloud network policy off") from exc
 
@@ -115,7 +115,7 @@ def _network_off(computer: Any) -> None:
 class LiveGuest:
     """One persistent Cloud computer whose cleanup is explicit."""
 
-    def __init__(self, sandbox_name: str, *, audit_path: Path | None = None) -> None:
+    def __init__(self, sandbox_name: str, *, audit_path: Path | None = None, dependency_network: bool = False) -> None:
         _install_cleanup_handlers()
         load_env()
         api_key = os.getenv("CELESTO_API_KEY", "")
@@ -138,7 +138,7 @@ class LiveGuest:
         if base_url:
             options["base_url"] = base_url
         self.computer = Computer(provider="cloud", lifetime="persistent", **options)
-        _network_off(self.computer)
+        _network_off(self.computer, enabled=dependency_network)
         self.sandbox_name = sandbox_name
         self.audit = CommandAuditLog(
             audit_path or ROOT / "logs/commands.jsonl", sandbox_name=sandbox_name
@@ -161,8 +161,22 @@ class LiveGuest:
                 raise LiveRuntimeError("Celesto computer cannot resume a persistent guest")
             resume()
         else:
-            self.computer.start()
-            self._created = True
+            max_retries = 2
+            for attempt in range(max_retries + 1):
+                try:
+                    self.computer.start()
+                    self._created = True
+                    break
+                except Exception as exc:
+                    err_msg = str(exc)
+                    is_transient = any(
+                        code in err_msg
+                        for code in ("503", "502", "504", "429", "Service Unavailable", "rate limit")
+                    )
+                    if is_transient and attempt < max_retries:
+                        time.sleep(2.0 * (attempt + 1))
+                        continue
+                    raise
         self.started = True
         # Computer.start()/resume() return only after Celesto reports the guest
         # ready. The first fixed guest command is the application-level probe;
@@ -346,7 +360,18 @@ def wait_for_fixture(guest: LiveGuest, port: int) -> None:
             return
         last_error = result.stderr or last_error
         time.sleep(0.2)
-    raise LiveRuntimeError(last_error)
+    diagnostics = guest.run("python3 -c " + shlex.quote(
+        "import pathlib,json; "
+        "p=pathlib.Path('/tmp/cairn-subject.log'); "
+        "print('Application log:\\n'+(p.read_text(errors='replace')[-6000:] if p.exists() else 'No application log was written.')); "
+        "ports=sorted({int(row.split()[1].split(':')[1],16) for file in ['/proc/net/tcp','/proc/net/tcp6'] if pathlib.Path(file).exists() for row in pathlib.Path(file).read_text().splitlines()[1:] if row.split()[3]=='0A'}); "
+        "print('Listening TCP ports: '+json.dumps(ports))"
+    ), timeout=5)
+    raise LiveRuntimeError(
+        f"Application did not become ready on 127.0.0.1:{port}. "
+        "Check the startup command, working directory and configured port.\n"
+        + (diagnostics.stdout if diagnostics.ok else last_error)
+    )
 
 
 def fixture_port(fixture: Path) -> int:
