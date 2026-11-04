@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import argparse
+import dataclasses
 import json
 import os
+import re
 import sys
 import tempfile
 import time
@@ -23,6 +25,7 @@ from runner import (
     wait_for_fixture,
 )
 
+from core.control import InvestigationCancelled
 from core.agent import CairnAgent, OpenAICompatibleClient
 from core.audit import CommandAuditLog
 from core.bundles import extract_source_archive
@@ -46,9 +49,17 @@ def run_investigation(
     investigation_id: str,
     sandbox_name: str | None = None,
     output_dir: Path = ROOT / "reports/investigations",
+    on_progress=None,
+    audit_path: Path | None = None,
 ) -> dict[str, object]:
+    def emit(message):
+        _progress(message)
+        if on_progress is not None and not message.startswith(('deleting ', 'Celesto guest deleted', 'investigation stopped:', 'reports written')):
+            on_progress(message)
+
     load_env()
     name = sandbox_name or unique_sandbox_name("cairn")
+    audit_file = audit_path or ROOT / "logs/commands.jsonl"
     started = time.monotonic()
     guest: LiveGuest | None = None
     finding: dict[str, object] | None = None
@@ -61,17 +72,19 @@ def run_investigation(
         "sandbox_deleted": False,
         "source_uploaded": False,
         "application_started": False,
+        "isolation": "celesto_firecracker_microvm",
+        "network_policy": "controlled_network" if spec.dependency_mode == "controlled_network" else "enforced_offline",
     }
 
     try:
-        _progress(f"creating Celesto guest {name}")
-        guest = LiveGuest(name, audit_path=ROOT / "logs/commands.jsonl")
+        emit(f"creating Celesto guest {name}")
+        guest = LiveGuest(name, audit_path=audit_file, dependency_network=spec.dependency_mode == "controlled_network")
         guest.start()
-        _progress(f"guest ready {name}")
+        emit(f"guest ready {name}")
         upload_guest_helpers(guest)
         subject_manifest = upload_source_tree(guest, source_root)
         lifecycle["source_uploaded"] = True
-        _progress("source and fixed guest helpers uploaded")
+        emit("source and fixed guest helpers uploaded")
         adapter = guest.adapter(
             port=spec.port or 5000,
             runtime=spec.runtime,
@@ -93,10 +106,17 @@ def run_investigation(
         )
         dispatcher = CairnToolDispatcher(
             adapter,
-            audit=CommandAuditLog(ROOT / "logs/commands.jsonl", sandbox_name=name),
+            audit=CommandAuditLog(audit_file, sandbox_name=name),
             policy=policy,
         )
-        _progress("preparing offline dependencies")
+        original_dispatch = dispatcher.dispatch
+        def observed_dispatch(name, arguments):
+            emit("Tool: " + name)
+            result = original_dispatch(name, arguments)
+            emit("Tool completed: " + name)
+            return result
+        dispatcher.dispatch = observed_dispatch
+        emit("installing dependencies inside Celesto" if spec.dependency_mode == "controlled_network" else "preparing offline dependencies")
         dependency_result = dispatcher.install_dependencies()
         if (
             dependency_result.get("error")
@@ -107,14 +127,48 @@ def run_investigation(
                 f"dependency preparation failed: {dependency_result.get('error', dependency_result)}"
             )
         if spec.subject_type == "http_app":
-            _progress("starting supplied application inside the guest")
+            emit("starting supplied application inside the guest")
             start_subject(guest, spec)
-            lifecycle["application_started"] = True
-            if spec.port is not None:
-                wait_for_fixture(guest, spec.port)
-                _progress(f"application ready on guest loopback port {spec.port}")
+            lifecycle["process_launched"] = True
+            target_port = spec.port or 5000
+            try:
+                wait_for_fixture(guest, target_port)
+                if spec.port is None:
+                    spec = dataclasses.replace(spec, port=target_port)
+                adapter.port = target_port
+                lifecycle["application_started"] = True
+                emit(f"application ready on guest loopback port {target_port}")
+            except LiveRuntimeError as exc:
+                match = re.search(r"Listening TCP ports:\s*\[([0-9, ]+)\]", str(exc))
+                adopted = False
+                if match:
+                    discovered = [int(p.strip()) for p in match.group(1).split(",") if p.strip()]
+                    candidates = [p for p in discovered if p not in {22, target_port}]
+                    chosen = None
+                    if len(candidates) == 1:
+                        chosen = candidates[0]
+                    elif len(candidates) > 1:
+                        common_web = [p for p in candidates if p in {5000, 5001, 8000, 8080, 3000, 8888, 4000}]
+                        chosen = common_web[0] if common_web else candidates[0]
+                    if chosen is not None:
+                        if spec.port is not None:
+                            emit(f"configured port {spec.port} closed; auto-adopting discovered port {chosen}")
+                        else:
+                            emit(f"zero-config mode: auto-adopting discovered port {chosen}")
+                        try:
+                            wait_for_fixture(guest, chosen)
+                            adapter.port = chosen
+                            spec = dataclasses.replace(spec, port=chosen)
+                            lifecycle["application_started"] = True
+                            lifecycle["auto_discovered_port"] = chosen
+                            emit(f"application ready on guest loopback port {chosen}")
+                            adopted = True
+                        except LiveRuntimeError:
+                            pass
+                if not adopted:
+                    raise
 
-        _progress("running bounded investigation tools")
+        emit("running bounded investigation tools")
         client = OpenAICompatibleClient(
             base_url=os.getenv("LLM_BASE_URL", ""),
             api_key=os.getenv("LLM_API_KEY", ""),
@@ -135,19 +189,21 @@ def run_investigation(
             },
         )
         finding = agent_result.finding
-        _progress(f"investigation finished with verdict {agent_result.verdict}")
+        emit(f"investigation finished with verdict {agent_result.verdict}")
+    except InvestigationCancelled:
+        error = "Investigation cancelled by its owner."
     except Exception as exc:
         error = f"{type(exc).__name__}: {exc}"
-        _progress(f"investigation stopped: {error}")
+        emit(f"investigation stopped: {error}")
     finally:
         if dispatcher is not None:
             dependency_events = list(dispatcher.dependency_events)
         if guest is not None:
             try:
-                _progress(f"deleting Celesto guest {name}")
+                emit(f"deleting Celesto guest {name}")
                 guest.delete()
                 lifecycle["sandbox_deleted"] = True
-                _progress("Celesto guest deleted")
+                emit("Celesto guest deleted")
             except Exception as exc:
                 lifecycle["cleanup_error"] = f"{type(exc).__name__}: {exc}"
 
@@ -175,7 +231,7 @@ def run_investigation(
     (output_dir / f"{investigation_id}.md").write_text(
         render_markdown(report), encoding="utf-8"
     )
-    _progress(f"reports written under {output_dir}")
+    emit(f"reports written under {output_dir}")
     return report
 
 
