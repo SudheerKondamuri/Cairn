@@ -1,0 +1,109 @@
+{
+  "claim": {
+    "report": "Security verification report\n============================\n\nTitle: OS command injection in the Northstar Operations Diagnostics API\n\nApplication: Northstar Operations Diagnostics API\nVersion under review: 1.4.3\nAffected component: operator diagnostics\n\nThe same report is retained for the patched comparison case. Verify whether\nGET /api/v1/diagnostics/resolve?host=<value> still permits command injection.\nThe test must distinguish a patched implementation from an unavailable service\nor an incorrectly constructed request, and should record the evidence used for\nthe conclusion.\n",
+    "runtime": "python",
+    "subject_type": "http_app"
+  },
+  "dependencies": {
+    "events": [
+      {
+        "installed": false,
+        "manifest": null,
+        "reason": "no supported dependency manifest found",
+        "supported": true
+      }
+    ],
+    "install_scripts_allowed": false,
+    "mode": "offline",
+    "network_during_install_allowed": false
+  },
+  "error": null,
+  "evidence": {
+    "agent_rationale": "The controller finalized not_reproduced after the bounded agent budget was exhausted. Every recorded investigation attempt completed without control-plane marker evidence; no infrastructure or dependency failure was observed.",
+    "attempts": [
+      {
+        "body": "{\"service\": \"northstar-operations-diagnostics\", \"version\": \"1.4.3\", \"environment\": \"staging\", \"status\": \"ok\"}",
+        "elapsed_ms": 8.27,
+        "marker_detected": false,
+        "outcome": "complete",
+        "param_name": "host",
+        "param_value": "localhost",
+        "path": "/health",
+        "status": 200
+      },
+      {
+        "body": "{\"service\": \"northstar-operations-diagnostics\", \"version\": \"1.4.3\", \"environment\": \"staging\", \"target\": \"; touch /tmp/cairn-markers/probe; #\", \"reachable\": true, \"details\": \"resolved target=; touch /tmp/cairn-markers/probe; #\\n\", \"error\": \"\"}",
+        "elapsed_ms": 6.408,
+        "marker_detected": false,
+        "outcome": "complete",
+        "param_name": "host",
+        "param_value": "; touch /tmp/cairn-markers/probe; #",
+        "path": "/api/v1/diagnostics/resolve",
+        "status": 200
+      },
+      {
+        "body": "{\"service\": \"northstar-operations-diagnostics\", \"version\": \"1.4.3\", \"environment\": \"staging\", \"target\": \"$(touch /tmp/cairn-markers/probe2) `touch /tmp/cairn-markers/probe3` && touch /tmp/cairn-markers/probe4\", \"reachable\": true, \"details\": \"resolved target=$(touch /tmp/cairn-markers/probe2) `touch /tmp/cairn-markers/probe3` && touch /tmp/cairn-markers/probe4\\n\", \"error\": \"\"}",
+        "elapsed_ms": 4.457,
+        "marker_detected": false,
+        "outcome": "complete",
+        "param_name": "host",
+        "param_value": "$(touch /tmp/cairn-markers/probe2) `touch /tmp/cairn-markers/probe3` && touch /tmp/cairn-markers/probe4",
+        "path": "/api/v1/diagnostics/resolve",
+        "status": 200
+      },
+      {
+        "body": "{\"service\": \"northstar-operations-diagnostics\", \"version\": \"1.4.3\", \"environment\": \"staging\", \"target\": \"localhost\", \"reachable\": true, \"details\": \"resolved target=localhost\\n\", \"error\": \"\"}",
+        "elapsed_ms": 4.266,
+        "marker_detected": false,
+        "outcome": "complete",
+        "param_name": "host",
+        "param_value": "localhost",
+        "path": "/api/v1/diagnostics/resolve",
+        "status": 200
+      }
+    ],
+    "independent_recheck": null,
+    "request": {
+      "param_name": "host",
+      "param_value": "localhost",
+      "path": "/api/v1/diagnostics/resolve"
+    },
+    "source_hash": "2a226e4bf5cfe82b89489dc406e0ea9113389d2b7ab4642ccd99ac5a40f87769"
+  },
+  "explanation": {
+    "next_action": "Confirm the application version and expand the harness if the report covers another path.",
+    "remediation": [
+      "Review the tested path, parameter, source revision, and dependency versions."
+    ],
+    "why": [
+      "The investigation completed without marker evidence (last HTTP status: 200).",
+      "This result does not prove that every code path or configuration is safe."
+    ]
+  },
+  "generated_at": "2026-10-24T05:57:10.946992+00:00",
+  "investigation_id": "inv-demo-northstar-patched",
+  "lifecycle": {
+    "application_started": true,
+    "sandbox_deleted": true,
+    "sandbox_name": "sbx-cairn5b489d0d1bf3",
+    "source_uploaded": true,
+    "subject_manifest": {
+      "file_count": 3,
+      "files": [
+        "README.md",
+        "app.py",
+        "security-report.txt"
+      ],
+      "source_hash": "8d3713bea268d0d78cdfea44d56bce6e939185f7f32b9a9dd572f4d8367fa853"
+    },
+    "wall_clock_s": 97.211
+  },
+  "schema_version": 1,
+  "subject": {
+    "port": 5002,
+    "source_hash": "2a226e4bf5cfe82b89489dc406e0ea9113389d2b7ab4642ccd99ac5a40f87769",
+    "working_directory": "."
+  },
+  "summary": "The supplied security claim was not reproduced under the supplied runtime and test conditions.",
+  "verdict": "not_reproduced"
+}

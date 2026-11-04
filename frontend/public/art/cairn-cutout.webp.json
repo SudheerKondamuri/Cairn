@@ -1,0 +1,4 @@
+{
+  "prompt": "Edit this Cairn sculpture image into a clean transparent-background cutout. Preserve the exact three dark basalt stones, their positions, proportions, mineral textures, the thin red slab between the stones, the small red inset marker, and the existing lighting. Remove the entire grey studio backdrop and ground, replacing them with genuine transparent alpha. Preserve only a small soft natural contact shadow immediately beneath the bottom stone, fading smoothly to transparency. No background-colored fringe or rectangular remnant. Do not redraw, restyle, sharpen, add lettering, change the sculpture, or add objects. Keep the full sculpture uncropped. Deliver an RGBA PNG with true transparency.",
+  "createdAt": "2026-11-04T06:45:48.564Z"
+}
