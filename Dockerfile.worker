@@ -9,6 +9,7 @@ WORKDIR /app
 COPY requirements.txt requirements-worker.txt ./
 RUN pip install --no-cache-dir -r requirements-worker.txt
 
+COPY migrations ./migrations
 COPY api ./api
 COPY core ./core
 COPY guest ./guest

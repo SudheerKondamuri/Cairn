@@ -1,4 +1,9 @@
 .env
+.env.*
+.venv
+frontend
+.impeccable
+.taste-skill
 .cairn
 .git
 .pytest_cache
