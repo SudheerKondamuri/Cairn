@@ -25,8 +25,10 @@ services:
       LLM_BASE_URL: ${LLM_BASE_URL:-https://example-llm-host/v1}
       LLM_API_KEY: ${LLM_API_KEY:-replace-me}
       LLM_MODEL: ${LLM_MODEL:-replace-with-a-model-name}
+      CAIRN_ACCESS_MODE: ${CAIRN_ACCESS_MODE:-local}
       CAIRN_API_KEY: ${CAIRN_API_KEY:-}
       CAIRN_REQUIRE_API_AUTH: ${CAIRN_REQUIRE_API_AUTH:-false}
+      CAIRN_ADMIN_IDENTITIES: ${CAIRN_ADMIN_IDENTITIES:-}
       CAIRN_API_RATE_LIMIT: ${CAIRN_API_RATE_LIMIT:-60}
       CAIRN_API_RATE_WINDOW_S: ${CAIRN_API_RATE_WINDOW_S:-60}
       DATABASE_URL: ${DATABASE_URL:-postgresql://ledger:ledger@ledger:5432/ledger}
@@ -45,6 +47,31 @@ services:
       timeout: 5s
       retries: 20
       start_period: 10s
+
+  web:
+    build:
+      context: ./frontend
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    environment:
+      CAIRN_ACCESS_MODE: ${CAIRN_ACCESS_MODE:-local}
+      CAIRN_APP_ORIGIN: ${CAIRN_APP_ORIGIN:-http://localhost:3000}
+      CAIRN_API_URL: http://api:8080
+      CAIRN_API_KEY: ${CAIRN_API_KEY:-}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID:-}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET:-}
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   worker:
     profiles: ["worker"]
