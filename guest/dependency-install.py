@@ -39,7 +39,8 @@ def main() -> int:
     manifest: str | None = None
     if mode == "prebuilt":
         return _write({"installed": False, "supported": True, "reason": "using image dependencies"}, 0)
-    if runtime == "python" and (root / "requirements.txt").is_file():
+    req_file = (root / "requirements.txt") if (root / "requirements.txt").is_file() else ((ROOT / "requirements.txt") if (ROOT / "requirements.txt").is_file() else None)
+    if runtime == "python" and req_file is not None:
         manifest = "requirements.txt"
         pathlib.Path("/input/deps").mkdir(parents=True, exist_ok=True)
         command = [
@@ -53,7 +54,7 @@ def main() -> int:
             "--target",
             "/input/deps",
             "-r",
-            str(root / "requirements.txt"),
+            str(req_file),
         ]
         if mode == "offline":
             command.insert(5, "--no-index")
