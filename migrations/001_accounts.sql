@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS cairn_accounts (
     run_limit INTEGER NOT NULL DEFAULT 3 CHECK (run_limit >= 0),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+INSERT INTO cairn_accounts(account_id, run_limit) VALUES ('acct-local', 999999) ON CONFLICT (account_id) DO UPDATE SET run_limit = 999999, suspended = FALSE;
 CREATE TABLE IF NOT EXISTS cairn_identities (
     provider TEXT NOT NULL CHECK (provider IN ('google', 'github')),
     subject TEXT NOT NULL,
