@@ -37,7 +37,7 @@ class WebStore:
     def local_account(self):
         # Dedicated local owner: never impersonate a Google or GitHub identity.
         with self.connect() as db:
-            db.execute("INSERT INTO cairn_accounts(account_id) VALUES ('acct-local') ON CONFLICT DO NOTHING")
+            db.execute("INSERT INTO cairn_accounts(account_id, run_limit) VALUES ('acct-local', 999999) ON CONFLICT (account_id) DO UPDATE SET run_limit=999999, suspended=FALSE")
             row = record(db.execute("SELECT account_id,run_limit FROM cairn_accounts WHERE account_id='acct-local'"))
             row['identities'] = ['local:owner']
             return row
@@ -74,9 +74,11 @@ class WebStore:
         with self.connect() as db:
             total, used = db.execute("SELECT count(*),count(*) FILTER (WHERE account_id=%s) FROM cairn_reservations WHERE state <> 'released'",(account,)).fetchone()
             limit, paused = db.execute('SELECT run_limit,paused FROM cairn_trial WHERE singleton').fetchone()
+            if account == 'acct-local':
+                return dict(limit=None, used=used, remaining=None, trial_remaining=None, paused=False, request_pending=False, unlimited=True)
             personal = db.execute('SELECT run_limit FROM cairn_accounts WHERE account_id=%s',(account,)).fetchone()[0]
             pending = db.execute('SELECT 1 FROM cairn_allowance_requests WHERE account_id=%s',(account,)).fetchone()
-            return dict(limit=personal, used=used, remaining=max(0,personal-used), trial_remaining=max(0,limit-total), paused=paused, request_pending=bool(pending))
+            return dict(limit=personal, used=used, remaining=max(0,personal-used), trial_remaining=max(0,limit-total), paused=paused, request_pending=bool(pending), unlimited=False)
 
     def submit(self, account, key, digest, report, manifest, source):
         with self.connect() as db:
