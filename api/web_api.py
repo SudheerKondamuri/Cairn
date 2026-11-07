@@ -92,7 +92,7 @@ def register_web(app):
         user=identity()
         key=request.headers.get('Idempotency-Key','')
         if not 16<=len(key)<=128: return {'error':'A valid submission identifier is required.'},400
-        if request.content_length and request.content_length>11*1024*1024: return {'error':'Upload limit is 10 MiB.'},413
+        if request.content_length and request.content_length>52*1024*1024: return {'error':'Upload limit is 50 MiB.'},413
         source=request.files.get('source')
         url=request.form.get('github_url','')
         if bool(source)==bool(url): return {'error':'Choose an archive or a public GitHub repository.'},400
@@ -104,8 +104,8 @@ def register_web(app):
                 if source:
                     source.save(path)
                 else:
-                    download_archive(url,path,ref=request.form.get('github_ref','').strip() or 'HEAD',max_bytes=10*1024*1024)
-                if path.stat().st_size>10*1024*1024: raise ValueError('Source exceeds 10 MiB.')
+                    download_archive(url,path,ref=request.form.get('github_ref','').strip() or 'HEAD',max_bytes=50*1024*1024)
+                if path.stat().st_size>50*1024*1024: raise ValueError('Source exceeds 50 MiB.')
                 members = validate_source_archive(path)
                 if url:
                     # GitHub archives wrap the repository in one generated directory.
