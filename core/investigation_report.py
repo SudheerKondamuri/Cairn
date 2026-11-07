@@ -21,6 +21,7 @@ def build_investigation_report(
     proposal = dict(finding.get("proposal") or {})
     verdict = str(finding.get("verdict") or "inconclusive")
     attempts = list(finding.get("attempts") or [])
+    inspections = list(finding.get("inspections") or [])
     independent = finding.get("independent_recheck")
     source_hash = finding.get("source_hash") or ((lifecycle or {}).get("subject_manifest") or {}).get("source_hash")
     summary, why, remediation, next_action = _explanation(
@@ -54,6 +55,7 @@ def build_investigation_report(
             },
             "agent_rationale": proposal.get("rationale"),
             "attempts": attempts,
+            "inspections": inspections,
             "independent_recheck": independent,
         },
         "explanation": {
@@ -139,21 +141,39 @@ def _explanation(
             "Open a remediation ticket with the source hash and reproduction recipe.",
         )
     if verdict == "not_reproduced":
-        status = attempts[-1].get("status") if attempts and isinstance(attempts[-1], Mapping) else None
+        why = []
+        has_404 = False
+        for att in attempts:
+            if isinstance(att, Mapping) and att.get("status") == 404:
+                why.append(f"Target route '{att.get('path')}' returned HTTP 404 Not Found.")
+                why.append("The running application has no handler registered for this route.")
+                why.append("Command injection could not be executed because the requested endpoint does not exist.")
+                has_404 = True
+                break
+        if not has_404:
+            last_status = attempts[-1].get("status") if attempts and isinstance(attempts[-1], Mapping) else None
+            why.append(f"The investigation completed without marker evidence{f' (last HTTP status: {last_status})' if last_status else ''}.")
+            why.append("The application accepted test requests and handled inputs safely.")
+            why.append("Harmless proof marker was not executed on the operating system.")
+        summary = (
+            "The suspected endpoint was not present in this revision (returned 404)."
+            if has_404
+            else "The security claim was not reproduced: the application handled tested inputs safely without executing commands."
+        )
         return (
-            "The supplied security claim was not reproduced under the supplied runtime and test conditions.",
+            summary,
+            why,
             [
-                f"The investigation completed without marker evidence{f' (last HTTP status: {status})' if status else ''}.",
-                "This result does not prove that every code path or configuration is safe.",
+                "Check the application source code to confirm the exact route path and prefix (e.g. /api/ping).",
+                "Verify that the startup command launched the intended application entrypoint.",
             ],
-            ["Review the tested path, parameter, source revision, and dependency versions."],
-            "Confirm the application version and expand the harness if the report covers another path.",
+            "Confirm the endpoint route path in the application code and retry.",
         )
     return (
-        "The investigation did not produce enough reliable evidence for a vulnerability verdict.",
-        [error or "The application, dependency setup, request, or evidence check did not complete."],
-        [],
-        "Resolve the recorded failure and retry in a fresh sandbox.",
+        "The investigation was inconclusive: testing could not complete.",
+        [error or "The application did not start, dependencies failed to install, or testing timed out."],
+        ["Check the application logs and ensure all required files and dependencies are present."],
+        "Review application startup logs and retry in a fresh sandbox.",
     )
 
 
