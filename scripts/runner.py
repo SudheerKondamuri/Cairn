@@ -207,10 +207,23 @@ class LiveGuest:
         parent = shlex.quote(str(Path(guest_path).parent))
         target = shlex.quote(guest_path)
         mode = " && chmod 700 " + target if executable else ""
-        command = f"mkdir -p {parent} && printf '%s' {shlex.quote(encoded)} | base64 -d > {target}{mode}"
-        result = self.run(command, timeout=30)
-        if not result.ok:
-            raise LiveRuntimeError(result.stderr or f"upload failed: {guest_path}")
+        chunk_size = 7500
+        if len(encoded) <= chunk_size:
+            command = f"mkdir -p {parent} && printf '%s' {shlex.quote(encoded)} | base64 -d > {target}{mode}"
+            result = self.run(command, timeout=30)
+            if not result.ok:
+                raise LiveRuntimeError(result.stderr or f"upload failed: {guest_path}")
+        else:
+            temp_b64 = f"/tmp/upload-{uuid.uuid4().hex[:8]}.b64"
+            self.run(f"mkdir -p {parent} && : > {temp_b64}", timeout=10)
+            for i in range(0, len(encoded), chunk_size):
+                chunk = encoded[i : i + chunk_size]
+                res = self.run(f"printf %s {shlex.quote(chunk)} >> {temp_b64}", timeout=30)
+                if not res.ok:
+                    raise LiveRuntimeError(res.stderr or f"upload chunk failed: {guest_path}")
+            result = self.run(f"base64 -d {temp_b64} > {target}{mode} && rm -f {temp_b64}", timeout=30)
+            if not result.ok:
+                raise LiveRuntimeError(result.stderr or f"upload failed: {guest_path}")
 
     def upload_file(self, local_path: Path, guest_path: str, *, executable: bool = False) -> None:
         self.upload_bytes(local_path.read_bytes(), guest_path, executable=executable)
@@ -229,10 +242,23 @@ class LiveGuest:
                 info.mode = 0o700 if executable else 0o600
                 bundle.addfile(info, io.BytesIO(data))
         encoded = base64.b64encode(archive.getvalue()).decode("ascii")
-        command = f"printf %s {shlex.quote(encoded)} | base64 -d | tar -xzf - -C /"
-        result = self.run(command, timeout=30)
-        if not result.ok:
-            raise LiveRuntimeError(result.stderr or "bundle upload failed")
+        chunk_size = 7500
+        if len(encoded) <= chunk_size:
+            command = f"printf %s {shlex.quote(encoded)} | base64 -d | tar -xzf - -C /"
+            result = self.run(command, timeout=30)
+            if not result.ok:
+                raise LiveRuntimeError(result.stderr or "bundle upload failed")
+        else:
+            temp_b64 = f"/tmp/cairn-bundle-{uuid.uuid4().hex[:8]}.b64"
+            self.run(f": > {temp_b64}", timeout=10)
+            for i in range(0, len(encoded), chunk_size):
+                chunk = encoded[i : i + chunk_size]
+                res = self.run(f"printf %s {shlex.quote(chunk)} >> {temp_b64}", timeout=30)
+                if not res.ok:
+                    raise LiveRuntimeError(res.stderr or "bundle upload chunk failed")
+            result = self.run(f"base64 -d {temp_b64} | tar -xzf - -C / && rm -f {temp_b64}", timeout=60)
+            if not result.ok:
+                raise LiveRuntimeError(result.stderr or "bundle extraction failed")
 
     def stop(self) -> None:
         if self.started:
