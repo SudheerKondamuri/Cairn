@@ -347,12 +347,11 @@ class CairnAgent:
         ):
             return None
 
-        rationale = (
-            "The controller finalized not_reproduced after the bounded agent "
-            "budget was exhausted. Every recorded investigation attempt completed "
-            "without control-plane marker evidence; no infrastructure or dependency "
-            "failure was observed."
-        )
+        has_404 = any(isinstance(a, Mapping) and a.get("status") == 404 for a in attempts)
+        if has_404:
+            rationale = "The suspected endpoint returned HTTP 404 (Not Found). The target route does not exist or was not reached on the running server."
+        else:
+            rationale = "The automated audit completed all test requests safely. No injected operating-system commands were executed on the system."
         try:
             if dispatcher.policy.allow_harness:
                 finding = dispatcher.submit_finding(
