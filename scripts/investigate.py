@@ -85,6 +85,28 @@ def run_investigation(
         subject_manifest = upload_source_tree(guest, source_root)
         lifecycle["source_uploaded"] = True
         emit("source and fixed guest helpers uploaded")
+
+        # Zero-config smart entrypoint auto-detection
+        files = set(subject_manifest.get("files") or [])
+        if spec.subject_type == "http_app":
+            if list(spec.start_argv) == ["python3", "app.py"] and spec.working_directory == ".":
+                if "app.py" not in files:
+                    if "app/app.py" in files:
+                        spec = dataclasses.replace(spec, working_directory="app", start_argv=["python3", "app.py"])
+                        emit("zero-config: auto-detected application in app/ directory: python3 app.py (cwd: app)")
+                    elif "src/app.py" in files:
+                        spec = dataclasses.replace(spec, working_directory="src", start_argv=["python3", "app.py"])
+                        emit("zero-config: auto-detected application in src/ directory: python3 app.py (cwd: src)")
+                    elif "start.sh" in files:
+                        spec = dataclasses.replace(spec, start_argv=["sh", "start.sh"])
+                        emit("zero-config: auto-detected startup script sh start.sh")
+                    elif "main.py" in files:
+                        spec = dataclasses.replace(spec, start_argv=["python3", "main.py"])
+                        emit("zero-config: auto-detected entrypoint python3 main.py")
+                    elif "server.py" in files:
+                        spec = dataclasses.replace(spec, start_argv=["python3", "server.py"])
+                        emit("zero-config: auto-detected entrypoint python3 server.py")
+
         adapter = guest.adapter(
             port=spec.port or 5000,
             runtime=spec.runtime,
@@ -141,9 +163,10 @@ def run_investigation(
             except LiveRuntimeError as exc:
                 match = re.search(r"Listening TCP ports:\s*\[([0-9, ]+)\]", str(exc))
                 adopted = False
+                SYSTEM_RESERVED_PORTS = {22, 53, 68, 8445, 9999, 10000, 2375, 2376}
                 if match:
                     discovered = [int(p.strip()) for p in match.group(1).split(",") if p.strip()]
-                    candidates = [p for p in discovered if p not in {22, target_port}]
+                    candidates = [p for p in discovered if p not in SYSTEM_RESERVED_PORTS and p != target_port]
                     chosen = None
                     if len(candidates) == 1:
                         chosen = candidates[0]
@@ -189,6 +212,8 @@ def run_investigation(
             },
         )
         finding = agent_result.finding
+        if finding is not None and getattr(dispatcher, "inspections", None) and "inspections" not in finding:
+            finding = {**finding, "inspections": list(dispatcher.inspections)}
         emit(f"investigation finished with verdict {agent_result.verdict}")
     except InvestigationCancelled:
         error = "Investigation cancelled by its owner."
