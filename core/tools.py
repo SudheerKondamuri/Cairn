@@ -56,6 +56,7 @@ class CairnToolDispatcher:
         self.policy = policy or DEFAULT_TOOL_POLICY
         self.attempts: list[dict[str, Any]] = []
         self.source_hashes: list[str] = []
+        self.inspections: list[dict[str, Any]] = []
         self.dependency_events: list[dict[str, Any]] = []
         self.dependency_failure = False
         self.final_finding: dict[str, Any] | None = None
@@ -96,13 +97,15 @@ class CairnToolDispatcher:
                 digest = line[len(marker) :]
                 break
         self.source_hashes.append(digest)
-        return {
+        record = {
             "path": path,
             "start_line": start_line,
             "end_line": end_line,
             "text": text,
             "source_hash": digest,
         }
+        self.inspections.append(record)
+        return record
 
     def list_source(self, *, subpath: str) -> dict[str, Any]:
         try:
