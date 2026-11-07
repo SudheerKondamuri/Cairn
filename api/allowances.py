@@ -40,14 +40,18 @@ def reserve(cursor: Any, *, account_id: str, idempotency_key: str, request_diges
         if existing[1] != request_digest:
             raise AdmissionDenied('idempotency_conflict')
         return existing[0], False
-    if trial[1]:
-        raise AdmissionDenied('trial_paused')
-    cursor.execute("SELECT count(*), count(*) FILTER (WHERE account_id = %s) FROM cairn_reservations WHERE state <> 'released'", (account_id,))
-    total, owned = cursor.fetchone()
-    if owned >= account[0]:
-        raise AdmissionDenied('account_allowance_exhausted')
-    if total >= trial[0]:
-        raise AdmissionDenied('trial_allowance_exhausted')
+
+    # Local workspace runs with the operator's own credentials; it is exempt from public trial quota caps and trial pause locks.
+    if account_id != 'acct-local':
+        if trial[1]:
+            raise AdmissionDenied('trial_paused')
+        cursor.execute("SELECT count(*), count(*) FILTER (WHERE account_id = %s) FROM cairn_reservations WHERE state <> 'released'", (account_id,))
+        total, owned = cursor.fetchone()
+        if owned >= account[0]:
+            raise AdmissionDenied('account_allowance_exhausted')
+        if total >= trial[0]:
+            raise AdmissionDenied('trial_allowance_exhausted')
+
     reservation_id = 'inv-' + secrets.token_hex(12)
     cursor.execute('INSERT INTO cairn_reservations (reservation_id, account_id, idempotency_key, request_digest) VALUES (%s, %s, %s, %s)', (reservation_id, account_id, idempotency_key, request_digest))
     return reservation_id, True
