@@ -21,6 +21,13 @@ export function Navigation() {
   const nav = useRef<HTMLElement>(null);
 
   useEffect(() => {
+    // When navigating to the landing page without a specific anchor, ensure fresh top start
+    if (!window.location.hash) {
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    }
+  }, []);
+
+  useEffect(() => {
     if (!open) return;
     function close(event: KeyboardEvent) {
       if (event.key === "Escape") {
