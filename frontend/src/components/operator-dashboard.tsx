@@ -33,7 +33,6 @@ export function OperatorDashboard() {
     <>
       <div className="page-heading">
         <div>
-          <p className="breadcrumb">Operator workspace</p>
           <h1>Your investigations</h1>
           <p>Submit a claim, track the work, inspect the evidence.</p>
         </div>
@@ -45,21 +44,12 @@ export function OperatorDashboard() {
           New investigation
         </Link>
       </div>
-      <div className="connection-strip">
-        <span
-          className={`mode-dot ${!health.error && health.data?.status === "ready" ? "connected" : ""}`}
-        />
-        <strong>
-          {health.error
-            ? "Service connection lost"
-            : health.data?.status === "ready"
-              ? "API and ledger reachable"
-              : health.loading
-                ? "Checking service…"
-                : "Service unavailable"}
-        </strong>
-        <span>Worker availability is not reported by this endpoint.</span>
-      </div>
+      {health.error && (
+        <div className="connection-strip error" role="alert">
+          <span className="mode-dot error" />
+          <strong>Service connection lost: unable to reach API or ledger.</strong>
+        </div>
+      )}
       <form
         className="filter-bar"
         onSubmit={(event) => {
