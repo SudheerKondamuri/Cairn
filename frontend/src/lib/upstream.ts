@@ -10,7 +10,11 @@ export class UpstreamError extends Error {
 }
 export function upstreamConfigured() {
   if (!process.env.CAIRN_API_URL) return false;
-  if (process.env.CAIRN_ACCESS_MODE === "local") return true;
+  if (
+    process.env.CAIRN_ACCESS_MODE === "local" ||
+    process.env.CAIRN_ACCESS_MODE === "open"
+  )
+    return true;
   return (
     !!process.env.CAIRN_API_KEY &&
     process.env.CAIRN_API_KEY !== "replace-me"
