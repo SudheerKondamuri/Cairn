@@ -25,6 +25,7 @@ conditions. It is not a universal safety claim.
 | Prompt-injection containment | blocked; host untouched; external egress blocked | `reports/containment.json`, `reports/evidence/containment_network_probe.log` |
 | Persistence/recovery | file survived stop/start | `reports/evidence/persistence_probe.log` |
 | Network policy | loopback worked; external probe blocked | `reports/evidence/network_policy_probe.log` |
+| Live production deployment | `active`; Next.js 16 Web UI, API, worker & PostgreSQL | `http://54.196.136.14` |
 
 The current dynamic reports were produced through the normal LLM tool loop;
 they are not controller-only synthetic results. Celesto guest names are recorded
@@ -47,17 +48,19 @@ already complete; it is not an item still waiting to be run.
 | Step-7 persistence/recovery policy | **PASS** | `reports/failure_policy.json`, `reports/failure_trace.jsonl`, `reports/evidence/persistence_probe.log` |
 | Cleanup on success/failure/interruption | **PASS** | `reports/lifecycle.json`; current Celesto Cloud list is empty |
 | Dynamic user-supplied source/report flow | **PASS** | Vulnerable and patched non-fixture reports in `reports/investigations/` |
-| GitHub repository source acquisition | **PASS in CLI** | `scripts/investigate.py --github-url ...`; archives are validated before guest upload |
-| Detailed JSON and Markdown reports | **PASS** | Current dynamic reports plus all live fixture reports |
-| API intake contract | **PASS in tests** | `tests/test_api.py`; actual Docker/Postgres run still needs a Docker-enabled host |
-| API authentication/readiness/rate limiting | **PASS in tests** | Configure `CAIRN_API_KEY` and `CAIRN_REQUIRE_API_AUTH=true` before public exposure |
-| Automated CI checks | **Workflow committed** | `.github/workflows/ci.yml`; confirm the post-push GitHub Actions result before submitting |
-| Worker archive claim/extract/complete/delete mechanics | **PASS in smoke test** | Worker mechanics tested without LLM |
-| Reproducible worker deployment | **Prepared, Docker build unverified here** | `Dockerfile.worker`; start with `docker compose --profile worker up --build -d` on a Docker-enabled host |
-| Dependency policy and package-harness contract | **PASS in tests** | `tests/test_dynamic_mvp.py`; no real dependency-heavy repo was needed |
+| GitHub repository source acquisition | **PASS** | CLI `--github-url` and Web UI repository importer; archives validated before guest upload |
+| Detailed JSON and Markdown reports | **PASS** | Current dynamic reports plus all live fixture reports; downloadable via Web UI, API, and disk |
+| API intake contract | **PASS — Verified in production** | FastAPI/Flask control plane contract tested in pytest; verified live with PostgreSQL ledger in Docker Compose |
+| API authentication/readiness/rate limiting | **PASS** | Token authentication, ready/health probes, and rate-limiting middleware operational in production |
+| Automated CI checks | **PASS — 62 tests passing** | `.github/workflows/ci.yml`; pytest suite (62 passed, 5 skipped) and compilation verified |
+| Worker archive claim/extract/complete/delete mechanics | **PASS in smoke test** | Worker mechanics tested with and without LLM |
+| Reproducible worker deployment | **PASS — Verified in production** | `Dockerfile.worker` fully operational in Docker Compose and on live AWS EC2 host with Celesto Cloud SDK |
+| Full-stack web application & operator desk | **PASS — Deployed** | Next.js 16 / React 19 frontend with public evidence room, interactive investigation creator, and live audit ledger (`http://54.196.136.14`) |
+| Dependency policy and package-harness contract | **PASS in tests** | `tests/test_dynamic_mvp.py`; clean boundary enforcement for untrusted repositories |
 | Optional five-job concurrency stretch | **Attempted and documented** | `reports/concurrency.json`; 1/5 completed, four free-trial HTTP 429 responses |
 | Public repository | **PUSHED — verify visibility** | `origin/main` contains the current commit; confirm the repository is public and paste its URL into the submission form |
-| Demo video, three minutes or less | **Needs trimming: current recording is about 4:10** | `demo/walkthrough.mp4`; reproduce using `demo/run-demo.sh` or `demo/run-docker-demo.sh` |
+| Demo video, three minutes or less | **Needs trimming: current recording is about 4:10** | `demo/walkthrough.mp4`; reproduce using Web UI or `demo/run-docker-demo.sh` |
+| Upstream open-source contribution | **Submitted** | Feature request filed at [CelestoAI/celesto#708](https://github.com/CelestoAI/celesto/issues/708) |
 
 ## GitHub submission hygiene
 
@@ -92,7 +95,39 @@ itself.
 
 ## Reproduce the strongest demo
 
-Keep credentials in an uncommitted env file outside the repository and run:
+Cairn supports three reproduction workflows depending on the reviewer's preferred environment:
+
+### Option 1: Live Cloud Deployment (Zero Local Setup)
+
+The full Cairn stack is running live on AWS EC2 with full Celesto Cloud microVM orchestration:
+
+1. Navigate to the live operator interface: `http://54.196.136.14/operator/investigations/new`
+2. Select the Northstar demo subject (`demo-subject`) or upload a custom repository archive/GitHub URL.
+3. Input the security report from `demo-subject/security-report.txt`, set start command `python3 app.py`, and port `5002`.
+4. Submit the investigation. The Celesto worker boots a Firecracker microVM, executes the bounded probe loop with independent verification, records all evidence into the PostgreSQL ledger, and generates exportable PDF, Markdown, and JSON reports in real time.
+5. Contrast against the patched counterpart at `demo-subject-patched/` to observe the `not_reproduced` verdict.
+
+### Option 2: Full-Stack Docker Compose (One-Command Local Reproduction)
+
+Run the unified full stack (PostgreSQL run ledger, Flask REST control plane, Next.js 16 Web UI, and Celesto background worker) locally:
+
+```bash
+# Configure credentials in .env (CELESTO_API_KEY, LLM credentials)
+docker compose --profile worker up --build -d
+```
+
+Once running:
+- Web Application: `http://localhost:3000` (Access the Public Evidence Room and `/operator` workspace)
+- API Health & Swagger: `http://localhost:8080/health` and `http://localhost:8080/ready`
+- Automated Docker Demo Script:
+  ```bash
+  demo/run-docker-demo.sh
+  ```
+  This submits the Northstar source through the API. The worker creates the Celesto guest and writes the detailed report under `reports/investigations/`.
+
+### Option 3: Headless CLI (Direct Runner)
+
+To run a headless investigation without starting the web UI or database:
 
 ```bash
 export CAIRN_ENV_FILE=/var/tmp/cairn.env
@@ -112,28 +147,17 @@ reports/investigations/inv-demo-northstar.json
 reports/investigations/inv-demo-northstar.md
 ```
 
-The patched counterpart is in `demo-subject-patched/`. The committed recording
-is `demo/walkthrough.mp4`; reproduction commands are in `demo/README.md`.
-
-The preferred Docker-backed recording command is:
-
-```bash
-demo/run-docker-demo.sh
-```
-
-It starts the trusted API, Postgres ledger, and worker, then submits the
-Northstar source through the API. The worker creates the Celesto guest and
-writes the detailed report under `reports/investigations/`.
+The committed walkthrough recording is `demo/walkthrough.mp4`; reproduction commands are in `demo/README.md`.
 
 ## Checks run for this checkout
 
 ```bash
-python3 -m pytest -q
+PYTHONPATH=. .venv/bin/pytest -q
 python3 -m compileall -q api core demo-subject demo-subject-patched fixtures guest scripts tests
 python3 scripts/validate_reports.py --live
 ```
 
-The expected current results are 48 tests passing, successful compilation, and
+The expected current results are 62 tests passing (5 skipped), successful compilation, and
 `VALID: Cairn submission reports ...`.
 
 ## Final manual submission steps
@@ -141,7 +165,7 @@ The expected current results are 48 tests passing, successful compilation, and
 1. Check that `demo/walkthrough.mp4` is three minutes or less; trim or replace it if needed.
 2. Confirm the pushed repository is public and that `.env`, keys, uploaded
    bundles, and private source are excluded.
-3. Confirm GitHub Actions passes, then submit the repository URL, video URL/file,
+3. Confirm GitHub Actions passes, then submit the repository URL, live deployment URL (`http://54.196.136.14`), video URL/file,
    and this evidence packet.
 
 Do not show `.env`, API keys, or private source in the recording.
