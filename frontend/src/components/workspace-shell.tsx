@@ -8,7 +8,6 @@ import {
   Files,
   BookOpen,
   LayoutDashboard,
-  LogOut,
   Menu,
   Plus,
   Shield,
@@ -73,17 +72,6 @@ export function WorkspaceShell({
     { href: "/investigations", title: "Example investigations", icon: Files },
     { href: "/guide", title: "Using Cairn", icon: BookOpen },
   ];
-
-  async function logout() {
-    try {
-      const r = await fetch("/api/session", { method: "DELETE" });
-      if (!r.ok) throw new Error();
-      router.replace("/operator/sign-in");
-      router.refresh();
-    } catch {
-      setError("Sign-out failed. Please try again.");
-    }
-  }
 
   const isInsidePublicSection = path.startsWith("/investigations") || path === "/guide";
 
@@ -211,17 +199,6 @@ export function WorkspaceShell({
                 Administration
               </Link>
             )}
-            {isOperator && !isLocalMode ? (
-              <button className="sidebar-utility" onClick={logout}>
-                <LogOut size={16} />
-                Sign out
-              </button>
-            ) : !isOperator ? (
-              <Link className="sidebar-utility" href="/operator">
-                <ArrowUpRight size={16} />
-                Sign in
-              </Link>
-            ) : null}
             <a
               className="sidebar-utility"
               href="https://github.com/SudheerKondamuri/Cairn"
