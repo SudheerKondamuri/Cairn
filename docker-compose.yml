@@ -8,6 +8,7 @@ services:
     volumes:
       - ledger-data:/var/lib/postgresql/data
       - ./seeds:/docker-entrypoint-initdb.d:ro
+    restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
@@ -41,6 +42,7 @@ services:
       - "${API_PORT:-8080}:8080"
     volumes:
       - ./.cairn:/var/lib/cairn
+    restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health"]
       interval: 5s
@@ -96,6 +98,7 @@ services:
     volumes:
       - ./.cairn:/var/lib/cairn
       - ./reports:/app/reports
+    restart: unless-stopped
 
 volumes:
   ledger-data:
