@@ -31,11 +31,11 @@ def collect_source_files(root: str | os.PathLike[str]) -> list[tuple[Path, str]]
         if not path.is_file():
             continue
         relative = path.relative_to(base).as_posix()
-        # Generated Python caches are not source evidence. Excluding them keeps
-        # the bundle small and prevents the agent from spending tool calls
-        # inspecting opaque bytecode instead of the submitted source.
+        # Generated Python caches, build artifacts, git internals, and package
+        # trees are excluded to keep the bundle small and prevent tool exhaustion.
         parts = Path(relative).parts
-        if "__pycache__" in parts or path.suffix == ".pyc":
+        IGNORED_PARTS = {"__pycache__", ".git", "node_modules", ".next", ".venv", "venv", ".turbo", "dist", "build"}
+        if any(p in IGNORED_PARTS for p in parts) or path.suffix == ".pyc":
             continue
         size = path.stat().st_size
         total_bytes += size
