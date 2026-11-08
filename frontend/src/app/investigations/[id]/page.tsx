@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { published } from "@/lib/reports";
 import { WorkspaceShell } from "@/components/workspace-shell";
 import { ReportView } from "@/components/report-view";
+import { signedIn, localAccessEnabled } from "@/lib/auth";
 export function generateStaticParams() {
   return published.map((item) => ({ id: item.slug }));
 }
@@ -26,8 +27,10 @@ export default async function Page({
   const { id } = await params;
   const item = published.find((item) => item.slug === id);
   if (!item) notFound();
+  const isAuth = await signedIn();
+  const isLocal = await localAccessEnabled();
   return (
-    <WorkspaceShell>
+    <WorkspaceShell operator={isAuth} local={isLocal}>
       <ReportView
         report={item.report}
         title={`${item.title} / ${item.version}`}
