@@ -71,6 +71,7 @@ Once started, verify the services and open the application:
 | Component | URL / Endpoint | Purpose |
 | --- | --- | --- |
 | **Web Application** | `http://localhost:3000` | Full UI: Landing page, public evidence room, and `/operator` workspace |
+| **Live Production** | `http://54.196.136.14` | Live AWS EC2 deployment with Celesto microVM execution |
 | **API Health** | `http://localhost:8080/health` | Process liveness check (`{"status":"ok"}`) |
 | **API Ready** | `http://localhost:8080/ready` | Database readiness check (`{"status":"ready"}`) |
 | **Ledger Runs** | `http://localhost:8080/api/runs` | Seeded and executed run history |
@@ -201,7 +202,7 @@ The evaluation matrix (`cases/evaluation_matrix.json`) tests two patterns across
 Verify that all local tests and live evaluation contracts pass:
 
 ```bash
-# 1. Run unit and integration tests (59 passed)
+# 1. Run unit and integration tests (62 passed, 5 skipped)
 PYTHONPATH=. .venv/bin/pytest tests/
 
 # 2. Validate retained submission reports against the hackathon contract
