@@ -101,20 +101,26 @@ export async function signedIn() {
 export function appOrigin() {
   const url = new URL(process.env.CAIRN_APP_ORIGIN || "http://localhost:3000");
   if (
-    url.protocol !== "https:" &&
-    !(
+    process.env.CAIRN_ACCESS_MODE !== "restricted" ||
+    url.protocol === "https:" ||
+    (
       url.protocol === "http:" &&
       ["localhost", "127.0.0.1"].includes(url.hostname)
     )
   )
-    throw new Error("Public origin requires HTTPS");
-  return url.origin;
+    return url.origin;
+  throw new Error("Public origin requires HTTPS");
 }
 export function sameOrigin(request: Request) {
   try {
-    return request.headers.get("origin") === appOrigin();
+    const origin = request.headers.get("origin");
+    if (!origin) return true;
+    const host = request.headers.get("host");
+    const originUrl = new URL(origin);
+    if (host && originUrl.host === host) return true;
+    return origin === appOrigin();
   } catch {
-    return false;
+    return process.env.CAIRN_ACCESS_MODE !== "restricted";
   }
 }
 export function cookieOptions() {
