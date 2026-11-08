@@ -248,6 +248,13 @@ scripts/             Worker daemon, evaluation runners, Gate 0 probe, and valida
 
 ---
 
+## Upstream Celesto Issue
+
+During evaluation across isolated Firecracker microVMs, an architectural feature request was submitted to the upstream Celesto project:
+- **Upstream Issue**: [CelestoAI/celesto#708](https://github.com/CelestoAI/celesto/issues/708) — *Support atomic runtime transitions for outbound network policy*
+
+---
+
 ## Responsible Disclosure & Use
 
 The vulnerable fixtures and Northstar demo subjects are intentionally insecure and must stay disposable and isolated within the Celesto microVM. Cairn is strictly intended for testing authorized source code and verifying reported claims on self-owned systems.
