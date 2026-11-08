@@ -93,6 +93,14 @@ cleanup result. Do **not** rerun the matrix unless code changes invalidate the
 recorded evidence; it costs credits and does not improve the submission by
 itself.
 
+## Upstream Celesto open-source contribution
+
+During real-world evaluation across isolated Firecracker microVMs with untrusted subjects, an architectural feature request was identified, formally specified, and submitted to the upstream Celesto repository:
+
+- **Upstream Issue**: [CelestoAI/celesto#708](https://github.com/CelestoAI/celesto/issues/708) — *Support atomic runtime transitions for outbound network policy*
+- **Technical Context**: Celesto's `internet_settings` is currently configured at sandbox creation time and remains immutable across the microVM lifecycle. Untrusted security investigation workflows face a structural tension: dependency installation (e.g., `pip`, `npm`) requires outbound package registry access, but untrusted code execution and vulnerability probing require strict outbound egress denial to prevent reverse shells and prompt-injection token exfiltration.
+- **Proposed Enhancement**: A host-enforced, atomic `update_network_policy()` transition method on the Celesto computer handle, allowing callers to safely shift from an open installation policy to a loopback/deny policy without tearing down and recreating the guest machine.
+
 ## Reproduce the strongest demo
 
 Cairn supports three reproduction workflows depending on the reviewer's preferred environment:
