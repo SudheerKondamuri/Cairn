@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation";
-import { signedIn, localAccessEnabled } from "@/lib/auth";
 import { WorkspaceShell } from "@/components/workspace-shell";
 export const metadata = {
   title: "Your workspace · Cairn",
@@ -10,6 +8,5 @@ export default async function Layout({
 }: {
   children: React.ReactNode;
 }) {
-  if (!(await signedIn())) redirect("/operator/sign-in");
-  return <WorkspaceShell operator local={await localAccessEnabled()}>{children}</WorkspaceShell>;
+  return <WorkspaceShell operator local>{children}</WorkspaceShell>;
 }
