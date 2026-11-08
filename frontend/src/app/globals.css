@@ -7,10 +7,13 @@
     box-sizing: border-box;
   }
   html {
-    scroll-behavior: smooth;
-    scroll-padding-top: 40px;
     overscroll-behavior-y: none;
     background-color: var(--paper);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html:has(:target) {
+      scroll-behavior: smooth;
+    }
   }
   body {
     margin: 0;
@@ -78,7 +81,7 @@
     color-scheme: light;
   }
   body {
-    background: var(--paper);
+    background: #f6f7f3;
     color: var(--ink);
     font-family: var(--body);
     font-size: 15px;
@@ -95,8 +98,9 @@
     color-scheme: dark;
   }
   :root[data-theme="dark"],
+  :root[data-theme="dark"] html,
   :root[data-theme="dark"] body {
-    background-color: #181f1b;
+    background-color: #181f1b !important;
     color: #e8eee9;
   }
   html:has(.workspace),
@@ -106,7 +110,7 @@
   }
   :root[data-theme="dark"]:has(.workspace),
   :root[data-theme="dark"]:has(.workspace) body {
-    background-color: #181f1b;
+    background-color: #181f1b !important;
   }
   ::selection {
     background: var(--accent);
