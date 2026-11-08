@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { WorkspaceShell } from "@/components/workspace-shell";
+import { signedIn, localAccessEnabled } from "@/lib/auth";
 export const metadata = { title: "Data & trial access · Cairn" };
-export default function Page() {
+export default async function Page() {
+  const isAuth = await signedIn();
+  const isLocal = await localAccessEnabled();
   return (
-    <WorkspaceShell>
+    <WorkspaceShell operator={isAuth} local={isLocal}>
       <article className="content-panel policy-page">
         <h1>Your source. Your evidence.</h1>
         <p>
