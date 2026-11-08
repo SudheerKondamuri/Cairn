@@ -70,7 +70,7 @@ export function OperatorDetail({ id }: { id: string }) {
         <button onClick={reload} className="subtle-button">
           Refresh
         </button>
-        <Link href="/operator/sign-in">Sign in again</Link>
+        <Link href="/operator">Return to workspace</Link>
       </div>
     );
   }
