@@ -71,14 +71,12 @@ const cases: CaseEvidence[] = [
 export default function Home() {
   return (
     <>
-      <a className="skip-link" href="#main">
-        Skip to content
-      </a>
-      <div className="hero-ground" id="top">
-        <Navigation />
-      </div>
       <main id="main">
-        <div className="hero-ground">
+        <a className="skip-link" href="#hero-heading">
+          Skip to content
+        </a>
+        <div className="hero-ground" id="top">
+          <Navigation />
           <section className="hero" aria-labelledby="hero-heading">
             <div className="hero-copy">
               <h1 id="hero-heading">
@@ -86,9 +84,9 @@ export default function Home() {
                 <span>Meet reality.</span>
               </h1>
               <p className="hero-description">
-                An AI investigator that puts command-injection reports to the
-                test. Real execution. Isolated sandboxes. Evidence you can
-                inspect.
+                Automated reproduction engine for command-injection security
+                reports. Real execution in isolated Celesto microVMs.
+                Independently verified proof markers.
               </p>
               <div className="hero-actions">
                 <a className="button primary-button" href="#investigation">
@@ -342,8 +340,8 @@ export default function Home() {
             </a>
           </div>
           <p>
-            An agent with a computer.
-            <br />A finding with a foundation.
+            Automated reproduction inside isolated Celesto MicroVMs.
+            <br />Independently verified proof markers.
           </p>
         </div>
         <div className="footer-wordmark" aria-hidden="true">
