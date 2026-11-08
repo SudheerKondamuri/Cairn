@@ -4,10 +4,6 @@ Autonomous command-injection reproduction agent running inside Celesto
 microVMs. A cairn is a marker left behind as proof that a path was actually
 checked; Cairn applies that idea to AppSec triage.
 
-> **Live deployment:** Cairn is deployed live on AWS EC2 at `http://54.196.136.14`
-> with the full Docker Compose stack and Celesto microVM execution available for
-> immediate evaluation.
-
 ---
 
 ## Unified Full-Stack Application
@@ -68,7 +64,6 @@ Once started, verify the services and open the application:
 | Component | URL / Endpoint | Purpose |
 | --- | --- | --- |
 | **Web Application** | `http://localhost:3000` | Full UI: Landing page, public evidence room, and `/operator` workspace |
-| **Live Production** | `http://54.196.136.14` | Live AWS EC2 deployment with Celesto microVM execution |
 | **API Health** | `http://localhost:8080/health` | Process liveness check (`{"status":"ok"}`) |
 | **API Ready** | `http://localhost:8080/ready` | Database readiness check (`{"status":"ready"}`) |
 | **Ledger Runs** | `http://localhost:8080/api/runs` | Seeded and executed run history |
