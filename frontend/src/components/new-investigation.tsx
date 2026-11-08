@@ -11,6 +11,21 @@ import {
 } from "lucide-react";
 const exampleReport =
   "Investigate command injection in the Northstar Diagnostics API. The GET /api/v1/diagnostics/resolve endpoint accepts a host parameter which may be interpolated into a shell command. Inspect the supplied source, identify the actual route, and test whether harmless marker evidence can reproduce the claim. Distinguish a negative result from a setup failure.";
+
+function safeRandomUUID(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) => {
+    const n = Number(c);
+    const rnd =
+      typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function"
+        ? crypto.getRandomValues(new Uint8Array(1))[0]
+        : Math.floor(Math.random() * 256);
+    return (n ^ (rnd & (15 >> (n / 4)))).toString(16);
+  });
+}
+
 export function NewInvestigation({ isLocal = false }: { isLocal?: boolean } = {}) {
   const router = useRouter();
   const [sourceType, setSourceType] = useState("upload");
@@ -127,7 +142,7 @@ export function NewInvestigation({ isLocal = false }: { isLocal?: boolean } = {}
         form.set("github_url", githubUrl);
         form.set("github_ref", githubRef);
       }
-      if (!submissionKey.current) submissionKey.current = crypto.randomUUID();
+      if (!submissionKey.current) submissionKey.current = safeRandomUUID();
       form.set("report", report);
       form.set("manifest", JSON.stringify(manifest()));
       const response = await fetch("/api/operator/investigations", {
