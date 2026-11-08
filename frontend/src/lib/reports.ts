@@ -11,6 +11,24 @@ export type Attempt = {
   marker_detected: boolean;
   outcome: string;
 };
+export type Inspection = {
+  path: string;
+  start_line: number;
+  end_line: number;
+  text: string;
+  source_hash?: string;
+};
+export type DependencyEvent = {
+  command?: string[];
+  manifest?: string | null;
+  installed?: boolean;
+  exit_code?: number;
+  stdout?: string;
+  stderr?: string;
+  network_mode?: string;
+  reason?: string;
+  supported?: boolean;
+};
 export type Report = {
   investigation_id: string;
   generated_at: string;
@@ -19,6 +37,7 @@ export type Report = {
   claim: { report: string; runtime: string; subject_type: string };
   evidence: {
     attempts: Attempt[];
+    inspections?: Inspection[];
     source_hash: string | null;
     agent_rationale?: string | null;
     request: { path: string; param_name: string; param_value: string };
@@ -30,12 +49,32 @@ export type Report = {
       request_constructed_by?: string;
     } | null;
   };
+  dependencies?: {
+    mode?: string;
+    events?: DependencyEvent[];
+    install_scripts_allowed?: boolean;
+    network_during_install_allowed?: boolean;
+  };
   lifecycle: {
     sandbox_name: string;
     sandbox_deleted: boolean;
     wall_clock_s: number;
     source_uploaded?: boolean;
     application_started?: boolean;
+    process_launched?: boolean;
+    isolation?: string;
+    network_policy?: string;
+    auto_discovered_port?: number;
+    subject_manifest?: {
+      file_count: number;
+      files: string[];
+      source_hash: string;
+    };
+  };
+  subject?: {
+    port?: number;
+    source_hash?: string;
+    working_directory?: string;
   };
   explanation?: { why: string[]; remediation: string[]; next_action: string };
   error?: string | null;
