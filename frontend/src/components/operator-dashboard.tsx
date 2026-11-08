@@ -102,7 +102,7 @@ export function OperatorDashboard() {
         <div className="error-notice" role="alert">
           <strong>Couldn’t refresh investigations</strong>
           <p>{error}</p>
-          <Link href="/operator/sign-in">Check operator access</Link>
+          <button type="button" className="text-button" onClick={() => reload()}>Retry</button>
         </div>
       )}
       {loading && !data ? (
