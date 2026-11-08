@@ -34,7 +34,7 @@ def create_app(
         JSON_SORT_KEYS=True,
         API_KEY=os.getenv("CAIRN_API_KEY", ""),
         REQUIRE_API_AUTH=os.getenv("CAIRN_REQUIRE_API_AUTH", "false").lower() == "true",
-        LOCAL_ACCESS=os.getenv("CAIRN_ACCESS_MODE", "hosted") == "local",
+        LOCAL_ACCESS=os.getenv("CAIRN_ACCESS_MODE", "open").lower() not in ("restricted",),
         ADMIN_IDENTITIES=os.getenv("CAIRN_ADMIN_IDENTITIES", ""),
         API_RATE_LIMIT=int(os.getenv("CAIRN_API_RATE_LIMIT", "60")),
         API_RATE_WINDOW_S=float(os.getenv("CAIRN_API_RATE_WINDOW_S", "60")),
