@@ -115,11 +115,11 @@ class WebStore:
             if not job:
                 raise AdmissionDenied('not_found')
             if action == 'cancel':
-                if job['status'] == 'queued':
+                if job['status'] in ('queued', 'running'):
                     db.execute("UPDATE cairn_web_jobs SET status='cancelled',cancel_requested=TRUE,updated_at=now() WHERE investigation_id=%s",(job_id,))
-                    transition(db.cursor(),job_id,'release_before_execution')
-                elif job['status'] == 'running':
-                    db.execute('UPDATE cairn_web_jobs SET cancel_requested=TRUE WHERE investigation_id=%s',(job_id,))
+                    if not transition(db.cursor(),job_id,'finish'):
+                        transition(db.cursor(),job_id,'release_before_execution')
+                    db.execute("INSERT INTO cairn_job_events(investigation_id,message) VALUES (%s,%s)",(job_id,'Investigation cancelled by operator.'))
                 else:
                     raise AdmissionDenied('already_finished')
             elif action == 'delete':
