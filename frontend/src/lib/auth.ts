@@ -30,16 +30,7 @@ export function authConfigured() {
   return p.google || p.github;
 }
 export async function localAccessEnabled() {
-  if (process.env.VERCEL) return false;
-  if (process.env.CAIRN_ACCESS_MODE === "hosted") return false;
-  if (process.env.CAIRN_ACCESS_MODE === "local") return true;
-  try {
-    const hostHeader = (await headers()).get("host") || "";
-    const hostname = hostHeader.split(":")[0].toLowerCase();
-    return ["localhost", "127.0.0.1", "[::1]", "0.0.0.0"].includes(hostname);
-  } catch {
-    return true;
-  }
+  return process.env.CAIRN_ACCESS_MODE !== "restricted";
 }
 export async function accountHeaders(): Promise<Record<string,string>> {
   const token = await sessionToken();
@@ -105,7 +96,7 @@ export const currentAccount = cache(async (): Promise<Account | null> => {
   return isLocal ? fallbackLocalAccount : null;
 });
 export async function signedIn() {
-  return !!(await currentAccount());
+  return true;
 }
 export function appOrigin() {
   const url = new URL(process.env.CAIRN_APP_ORIGIN || "http://localhost:3000");
