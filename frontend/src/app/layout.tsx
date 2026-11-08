@@ -5,13 +5,13 @@ import "./globals.css";
 import "./workspace.css";
 
 export const metadata: Metadata = {
-  title: "Cairn — Security claims. Meet reality.",
+  title: "Cairn — Security Claim Verification",
   description:
-    "An AI investigator that tests command-injection reports inside Celesto sandboxes and returns independently rechecked evidence. Explore a real recorded investigation.",
+    "Automated command-injection reproduction engine executing inside isolated Celesto sandboxes with independent proof-marker verification.",
   openGraph: {
-    title: "Cairn — Security claims. Meet reality.",
+    title: "Cairn — Security Claim Verification",
     description:
-      "A real investigation. An isolated computer. Evidence you can inspect.",
+      "Automated command-injection reproduction engine executing inside isolated Celesto sandboxes with independent proof-marker verification.",
     type: "website",
   },
   robots: { index: true, follow: true },
@@ -22,8 +22,15 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "try{var t=localStorage.getItem('cairn-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';}catch(e){}",
+          }}
+        />
+      </head>
       <body>
-        <script dangerouslySetInnerHTML={{ __html: "try{document.documentElement.dataset.theme=localStorage.getItem('cairn-theme')==='dark'?'dark':'light'}catch{}" }} />
         {children}
       </body>
     </html>
