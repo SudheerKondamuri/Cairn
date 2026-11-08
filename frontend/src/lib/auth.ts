@@ -8,12 +8,13 @@ export type Account = {
   local?: boolean;
   identities: string[];
   allowance: {
-    limit: number;
+    limit: number | null;
     used: number;
-    remaining: number;
-    trial_remaining: number;
+    remaining: number | null;
+    trial_remaining: number | null;
     paused: boolean;
     request_pending: boolean;
+    unlimited?: boolean;
   };
 };
 export function configuredProviders() {
@@ -62,12 +63,13 @@ export const currentAccount = cache(async (): Promise<Account | null> => {
     local: true,
     identities: ["local-operator"],
     allowance: {
-      limit: 100,
+      limit: null,
       used: 0,
-      remaining: 100,
-      trial_remaining: 100,
+      remaining: null,
+      trial_remaining: null,
       paused: false,
       request_pending: false,
+      unlimited: true,
     },
   };
 
