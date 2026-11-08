@@ -4,12 +4,9 @@ Autonomous command-injection reproduction agent running inside Celesto
 microVMs. A cairn is a marker left behind as proof that a path was actually
 checked; Cairn applies that idea to AppSec triage.
 
-> **Live-status note:** this repository contains measured Celesto Cloud evidence
-> for Gate 0, containment, step-7 recovery, and the required 20-run evaluation.
-> The recorded artifacts are retained under `reports/` and `reports/live/`.
-> A fresh checkout still requires real provider keys in a local env file outside
-> the checkout before rerunning any live command; no synthetic timings, costs, or
-> containment results are presented as live evidence.
+> **Live deployment:** Cairn is deployed live on AWS EC2 at `http://54.196.136.14`
+> with the full Docker Compose stack and Celesto microVM execution available for
+> immediate evaluation.
 
 ---
 
@@ -135,8 +132,8 @@ Celesto provides microVM sandboxes with hardware-level boundary isolation:
 ### 1. Air-Gapped Network Policy
 Each live guest is configured with an outbound network policy of `off` before boot. The subject application, HTTP probes, and marker verification oracle operate exclusively over the loopback interface (`127.0.0.1`). If the Celesto SDK cannot enforce network containment, Cairn fails closed rather than booting an open guest.
 
-### 2. State-Preserving Step-7 Recovery
-Under transient network or execution faults (such as mid-flight request failure at step 7), Cairn applies a `resume` policy:
+### 2. State-Preserving Fault Recovery
+Under transient network or execution faults during active probing, Cairn applies a `resume` policy:
 - Stops and restarts the *same persistent guest*;
 - Verifies workspace integrity and source hashes;
 - Flushes marker directories; and
@@ -150,7 +147,7 @@ The AI agent proposes when it believes an injection occurred, but **the agent ne
 
 ## Control-Plane API Reference
 
-The Flask control plane serves both automated grading scripts and web client proxying:
+The Flask control plane serves both programmatic API clients and web application proxying:
 
 ```text
 GET  /health
@@ -180,13 +177,13 @@ GET  /api/investigations/<id>
 
 ## Evaluation Evidence & Measured Results
 
-The evaluation matrix (`cases/evaluation_matrix.json`) tests two patterns across vulnerable and patched variants, subjected to 5 distinct report-quality challenges (20 total runs).
+The benchmark matrix (`cases/evaluation_matrix.json`) tests two patterns across vulnerable and patched variants, subjected to 5 distinct report-quality variations (20 total runs).
 
 ### Retained Evidence Files
-- **Gate 0 Network Probe**: `reports/evidence/network_policy_probe.log` (verifies loopback success and external egress block)
+- **MicroVM Network Isolation Probe**: `reports/evidence/network_policy_probe.log` (verifies loopback enforcement and external egress block)
 - **Containment Test**: `reports/containment.json` (verifies prompt injection cannot escape the bounded tool loop or perform external curl)
-- **Step-7 Failure Recovery**: `reports/failure_policy.json` and `reports/failure_trace.jsonl`
-- **20-Run Evaluation Matrix**: `reports/reliability.json` and `reports/postmortem.md`
+- **Fault Recovery & Resilience Audit**: `reports/failure_policy.json` and `reports/failure_trace.jsonl`
+- **20-Run Benchmark Matrix**: `reports/reliability.json` and `reports/postmortem.md`
 
 ### Measured Metrics
 - **Infrastructure Reliability**: 18/20 successes (90.0%)
@@ -205,7 +202,7 @@ Verify that all local tests and live evaluation contracts pass:
 # 1. Run unit and integration tests (62 passed, 5 skipped)
 PYTHONPATH=. .venv/bin/pytest tests/
 
-# 2. Validate retained submission reports against the hackathon contract
+# 2. Validate retained audit reports and evidence
 python scripts/validate_reports.py --live
 ```
 
@@ -219,12 +216,12 @@ To run live investigations against Celesto Cloud from the CLI:
 # Set your environment file containing CELESTO_API_KEY and LLM credentials
 export CAIRN_ENV_FILE=/var/tmp/cairn.env
 
-# Execute validation gates in order
-python3 scripts/gate0.py
-python3 scripts/run_one.py a-v-stale
-python3 scripts/run_containment.py
-python3 scripts/run_step7_failure.py
-python3 scripts/run_evals.py
+# Run verification probes and live evaluations
+python3 scripts/gate0.py               # MicroVM network isolation probe
+python3 scripts/run_one.py a-v-stale   # Single benchmark case execution
+python3 scripts/run_containment.py     # Prompt-injection containment verification
+python3 scripts/run_step7_failure.py   # State-preserving fault recovery audit
+python3 scripts/run_evals.py           # 20-case evaluation benchmark
 python3 scripts/validate_reports.py --live
 ```
 
@@ -243,8 +240,8 @@ demo-subject-patched/ Northstar Operations Diagnostics API (patched remediation)
 migrations/          PostgreSQL ledger schema definitions
 seeds/               Initial database seeds for runs and trial accounts
 cases/               The 20-case evaluation matrix specification
-reports/             Challenge-format evidence, audit logs, and generated investigation post-mortems
-scripts/             Worker daemon, evaluation runners, Gate 0 probe, and validation tools
+reports/             Structured audit evidence, logs, and generated investigation post-mortems
+scripts/             Worker daemon, evaluation runners, isolation probe, and validation tools
 ```
 
 ---
