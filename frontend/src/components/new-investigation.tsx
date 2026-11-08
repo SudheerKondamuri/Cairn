@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 const exampleReport =
   "Investigate command injection in the Northstar Diagnostics API. The GET /api/v1/diagnostics/resolve endpoint accepts a host parameter which may be interpolated into a shell command. Inspect the supplied source, identify the actual route, and test whether harmless marker evidence can reproduce the claim. Distinguish a negative result from a setup failure.";
-export function NewInvestigation() {
+export function NewInvestigation({ isLocal = false }: { isLocal?: boolean } = {}) {
   const router = useRouter();
   const [sourceType, setSourceType] = useState("upload");
   const [githubUrl, setGithubUrl] = useState("");
@@ -23,7 +23,7 @@ export function NewInvestigation() {
   const [runtime, setRuntime] = useState("python");
   const [subject, setSubject] = useState("http_app");
   const [argv, setArgv] = useState('["python3", "app.py"]');
-  const [port, setPort] = useState(5000);
+  const [port, setPort] = useState("");
   const [directory, setDirectory] = useState(".");
   const [mode, setMode] = useState("controlled_network");
   const [scripts, setScripts] = useState(false);
@@ -32,9 +32,11 @@ export function NewInvestigation() {
   const [error, setError] = useState("");
   const [uncertain, setUncertain] = useState(false);
   function manifest() {
+    const parsedPort = port.trim() ? Number(port) : null;
     if (
       subject === "http_app" &&
-      (!Number.isInteger(port) || port < 1 || port > 65535)
+      parsedPort !== null &&
+      (!Number.isInteger(parsedPort) || parsedPort < 1 || parsedPort > 65535)
     )
       throw new Error("HTTP port must be an integer from 1 to 65535.");
     const args: unknown = JSON.parse(argv);
@@ -60,7 +62,7 @@ export function NewInvestigation() {
       subject_type: subject,
       runtime,
       [subject === "http_app" ? "start_argv" : "test_argv"]: args,
-      ...(subject === "http_app" ? { port } : {}),
+      ...(subject === "http_app" && parsedPort !== null ? { port: parsedPort } : {}),
       working_directory: directory || ".",
       dependency_mode: mode,
       allow_network_during_install: mode === "controlled_network",
@@ -76,14 +78,14 @@ export function NewInvestigation() {
           (!file ||
             !/\.(tar\.gz|tgz)$/i.test(file.name) ||
             file.size === 0 ||
-            file.size > 10 * 1024 * 1024)) ||
+            file.size > 50 * 1024 * 1024)) ||
           (sourceType === "github" &&
             !/^https:\/\/github\.com\/[^/]+\/[^/]+\/?$/.test(githubUrl)) ||
           !report.trim() ||
           report.length > 20_000)
       )
         throw new Error(
-          "Choose a nonempty source archive up to 10 MiB and enter a report.",
+          "Choose a nonempty source archive up to 50 MiB and enter a report.",
         );
       if (step === 1) manifest();
       setStep(step + 1);
@@ -106,7 +108,7 @@ export function NewInvestigation() {
       setMode("offline");
 
       setArgv('["python3", "app.py"]');
-      setPort(5002);
+      setPort("");
     } catch {
       setError(
         "The example archive could not be loaded. Choose your own source archive.",
@@ -238,7 +240,7 @@ export function NewInvestigation() {
                     maxLength={200}
                   />
                   <p className="field-hint">
-                    Import limit: 10 MiB compressed. Use a commit for
+                    Import limit: 50 MiB compressed. Use a commit for
                     reproducible source. Repository access does not grant
                     permission to investigate it.
                   </p>
@@ -313,30 +315,40 @@ export function NewInvestigation() {
                 onChange={(e) => setArgv(e.target.value)}
               />
               <p className="field-hint">
-                Arguments are passed separately. The HTTP port must match the port your application actually listens on (Flask defaults to 5000). Choose a runtime available in your sandbox image.
+                Arguments are passed separately. HTTP port is auto-detected dynamically from guest sockets. Choose a runtime available in your sandbox image.
               </p>
-              <div className="field-grid">
-                {subject === "http_app" && (
-                  <label>
-                    HTTP port
-                    <input
-                      type="number"
-                      min={1}
-                      max={65535}
-                      value={port}
-                      onChange={(e) => setPort(Number(e.target.value))}
-                    />
-                  </label>
-                )}
-                <label>
-                  Working directory
-                  <input
-                    value={directory}
-                    onChange={(e) => setDirectory(e.target.value)}
-                    maxLength={200}
-                  />
-                </label>
-              </div>
+              <label>
+                Working directory
+                <input
+                  value={directory}
+                  onChange={(e) => setDirectory(e.target.value)}
+                  maxLength={200}
+                />
+              </label>
+              {subject === "http_app" && (
+                <details className="port-override-disclosure" style={{ marginBlock: "8px 16px" }}>
+                  <summary style={{ cursor: "pointer", fontSize: "13px", color: "var(--app-muted)" }}>
+                    Port configuration (auto-detected by default)
+                  </summary>
+                  <div style={{ marginTop: "10px", padding: "12px", background: "var(--app-surface-subtle, rgba(0,0,0,0.03))", borderRadius: "6px" }}>
+                    <label style={{ fontSize: "13px", display: "block" }}>
+                      Override HTTP port (optional)
+                      <input
+                        type="number"
+                        min={1}
+                        max={65535}
+                        placeholder="Leave blank for automatic port discovery"
+                        value={port}
+                        onChange={(e) => setPort(e.target.value)}
+                        style={{ marginTop: "4px" }}
+                      />
+                    </label>
+                    <p className="field-hint" style={{ marginTop: "4px" }}>
+                      Cairn automatically scans listening sockets in the Celesto guest (/proc/net/tcp). Set this only if your app binds to multiple ports and you need to force a specific one.
+                    </p>
+                  </div>
+                </details>
+              )}
               <label>
                 Dependencies
                 <select value={mode} onChange={(e) => setMode(e.target.value)}>
@@ -384,9 +396,9 @@ export function NewInvestigation() {
                 I own this source or have permission to investigate it.
               </label>
               <div className="notice">
-                This uses one investigation from your allowance. Source archives
-                are removed after execution; reports remain available for 30
-                days.
+                {isLocal
+                  ? "Source archives are removed after sandbox execution. Reports and evidence remain accessible for 30 days."
+                  : "This run uses one investigation from your allowance. Source archives are removed after execution."}
               </div>
             </>
           )}
