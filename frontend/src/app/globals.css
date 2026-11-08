@@ -88,7 +88,7 @@
     line-height: 1.65;
     -webkit-font-smoothing: antialiased;
   }
-  :root[data-theme="dark"] {
+  :root[data-theme="dark"]:has(.workspace) {
     --paper: #181f1b;
     --hero-ground: #1c2620;
     --ink: #e8eee9;
@@ -96,12 +96,6 @@
     --line: #44544a;
     --dark: #121815;
     color-scheme: dark;
-  }
-  :root[data-theme="dark"],
-  :root[data-theme="dark"] html,
-  :root[data-theme="dark"] body {
-    background-color: #181f1b !important;
-    color: #e8eee9;
   }
   html:has(.workspace),
   html:has(.workspace) body {
@@ -111,6 +105,7 @@
   :root[data-theme="dark"]:has(.workspace),
   :root[data-theme="dark"]:has(.workspace) body {
     background-color: #181f1b !important;
+    color: #e8eee9;
   }
   ::selection {
     background: var(--accent);
@@ -247,14 +242,6 @@
     transition: background 180ms, color 180ms;
   }
   .header-action:hover {
-    background: var(--accent);
-    color: #ffffff;
-  }
-  :root[data-theme="dark"] .header-action {
-    background: #e8eee9;
-    color: #181f1b;
-  }
-  :root[data-theme="dark"] .header-action:hover {
     background: var(--accent);
     color: #ffffff;
   }
@@ -1064,122 +1051,6 @@
   }
   .method-bottom a:hover {
     color: var(--accent);
-  }
-
-  :root[data-theme="dark"] .method-section {
-    background: #1c2720;
-    color: #e8eee9;
-  }
-  :root[data-theme="dark"] .method-section h2,
-  :root[data-theme="dark"] .method-section h3 {
-    color: #e8eee9;
-  }
-  :root[data-theme="dark"] .method-opening > p {
-    color: #9cb19f;
-  }
-  :root[data-theme="dark"] .boundary-visual {
-    background: #141e17;
-    border: 1px solid #2e3e33;
-  }
-  :root[data-theme="dark"] .control-node > span,
-  :root[data-theme="dark"] .guest-header strong,
-  :root[data-theme="dark"] .guest-content > div {
-    color: #e8eee9;
-  }
-  :root[data-theme="dark"] .control-node .control-note,
-  :root[data-theme="dark"] .boundary-connection,
-  :root[data-theme="dark"] .guest-caption,
-  :root[data-theme="dark"] .guest-boundary > p,
-  :root[data-theme="dark"] .boundary-note,
-  :root[data-theme="dark"] .step-number,
-  :root[data-theme="dark"] .method-bottom > span {
-    color: #8da491;
-  }
-  :root[data-theme="dark"] .connection-lines span {
-    background: #475e4e;
-  }
-  :root[data-theme="dark"] .connection-lines span::after {
-    border-color: #475e4e;
-  }
-  :root[data-theme="dark"] .guest-boundary {
-    border-color: #3b4f41;
-  }
-  :root[data-theme="dark"] .guest-content svg,
-  :root[data-theme="dark"] .guest-cross {
-    color: #8da491;
-  }
-  :root[data-theme="dark"] .method-steps li + li,
-  :root[data-theme="dark"] .method-bottom {
-    border-color: #2e3e33;
-  }
-  :root[data-theme="dark"] .method-steps p {
-    color: #a4b8a7;
-  }
-  :root[data-theme="dark"] .method-bottom a {
-    color: #e8eee9;
-  }
-
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) .header-action {
-      background: #e8eee9;
-      color: #181f1b;
-    }
-    :root:not([data-theme="light"]) .header-action:hover {
-      background: var(--accent);
-      color: #ffffff;
-    }
-    :root:not([data-theme="light"]) .method-section {
-      background: #1c2720;
-      color: #e8eee9;
-    }
-    :root:not([data-theme="light"]) .method-section h2,
-    :root:not([data-theme="light"]) .method-section h3 {
-      color: #e8eee9;
-    }
-    :root:not([data-theme="light"]) .method-opening > p {
-      color: #9cb19f;
-    }
-    :root:not([data-theme="light"]) .boundary-visual {
-      background: #141e17;
-      border: 1px solid #2e3e33;
-    }
-    :root:not([data-theme="light"]) .control-node > span,
-    :root:not([data-theme="light"]) .guest-header strong,
-    :root:not([data-theme="light"]) .guest-content > div {
-      color: #e8eee9;
-    }
-    :root:not([data-theme="light"]) .control-node .control-note,
-    :root:not([data-theme="light"]) .boundary-connection,
-    :root:not([data-theme="light"]) .guest-caption,
-    :root:not([data-theme="light"]) .guest-boundary > p,
-    :root:not([data-theme="light"]) .boundary-note,
-    :root:not([data-theme="light"]) .step-number,
-    :root:not([data-theme="light"]) .method-bottom > span {
-      color: #8da491;
-    }
-    :root:not([data-theme="light"]) .connection-lines span {
-      background: #475e4e;
-    }
-    :root:not([data-theme="light"]) .connection-lines span::after {
-      border-color: #475e4e;
-    }
-    :root:not([data-theme="light"]) .guest-boundary {
-      border-color: #3b4f41;
-    }
-    :root:not([data-theme="light"]) .guest-content svg,
-    :root:not([data-theme="light"]) .guest-cross {
-      color: #8da491;
-    }
-    :root:not([data-theme="light"]) .method-steps li + li,
-    :root:not([data-theme="light"]) .method-bottom {
-      border-color: #2e3e33;
-    }
-    :root:not([data-theme="light"]) .method-steps p {
-      color: #a4b8a7;
-    }
-    :root:not([data-theme="light"]) .method-bottom a {
-      color: #e8eee9;
-    }
   }
 
   .open-section {
